@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { directus } from "@/integrations/directus/client";
+import { uploadFiles, readFiles, deleteFile } from '@directus/sdk';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,19 +15,20 @@ interface MediaUploadProps {
   onUploadSuccess?: () => void;
 }
 
-interface MediaFile {
+interface MediaFileUI {
   id: string;
   filename: string;
-  file_path: string;
+  url: string;
   file_type: 'image' | 'video';
   description: string;
 }
 
 export const MediaUpload = ({ category, title, onUploadSuccess }: MediaUploadProps) => {
   const { toast } = useToast();
-  const [files, setFiles] = useState<MediaFile[]>([]);
+  const [files, setFiles] = useState<MediaFileUI[]>([]);
   const [uploading, setUploading] = useState(false);
   const [description, setDescription] = useState("");
+  const DIRECTUS_URL = import.meta.env.VITE_DIRECTUS_URL || 'https://1.cycloscope.online';
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = event.target.files;
@@ -36,39 +38,12 @@ export const MediaUpload = ({ category, title, onUploadSuccess }: MediaUploadPro
 
     try {
       for (const file of Array.from(fileList)) {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-        const filePath = `${category}/${fileName}`;
+        const form = new FormData();
+        form.append('file', file);
+        form.append('title', category);
+        if (description) form.append('description', description);
 
-        // Upload file to storage
-        const { error: uploadError } = await supabase.storage
-          .from('media')
-          .upload(filePath, file);
-
-        if (uploadError) {
-          throw uploadError;
-        }
-
-        // Get public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('media')
-          .getPublicUrl(filePath);
-
-        // Save file metadata to database
-        const fileType = file.type.startsWith('video/') ? 'video' : 'image';
-        const { error: dbError } = await supabase
-          .from('media_files')
-          .insert({
-            filename: file.name,
-            file_path: publicUrl,
-            file_type: fileType,
-            category: category,
-            description: description || file.name
-          });
-
-        if (dbError) {
-          throw dbError;
-        }
+        await directus.request(uploadFiles(form));
       }
 
       toast({
@@ -92,55 +67,31 @@ export const MediaUpload = ({ category, title, onUploadSuccess }: MediaUploadPro
   };
 
   const loadFiles = async () => {
-    const { data, error } = await supabase
-      .from('media_files')
-      .select('*')
-      .eq('category', category)
-      .order('created_at', { ascending: false });
-
-    if (!error && data) {
-      setFiles(data as MediaFile[]);
+    try {
+      const list = await directus.request(readFiles({
+        filter: { title: { _eq: category } },
+        sort: ['-date_created']
+      }));
+      const mapped: MediaFileUI[] = (list || []).map((f: any) => ({
+        id: f.id,
+        filename: f.filename_download,
+        url: `${DIRECTUS_URL}/assets/${f.id}`,
+        file_type: f.type?.startsWith('video/') ? 'video' : 'image',
+        description: f.description || f.filename_download,
+      }));
+      setFiles(mapped);
+    } catch (e) {
+      // ignore
     }
   };
 
-  const deleteFile = async (fileId: string, filePath: string) => {
+  const handleDeleteFile = async (fileId: string) => {
     try {
-      // Extract file path from public URL
-      const pathParts = filePath.split('/media/');
-      const storagePath = pathParts[1];
-
-      // Delete from storage
-      const { error: storageError } = await supabase.storage
-        .from('media')
-        .remove([storagePath]);
-
-      if (storageError) {
-        throw storageError;
-      }
-
-      // Delete from database
-      const { error: dbError } = await supabase
-        .from('media_files')
-        .delete()
-        .eq('id', fileId);
-
-      if (dbError) {
-        throw dbError;
-      }
-
-      toast({
-        title: "Файл удален",
-        description: "Файл успешно удален",
-      });
-
+      await directus.request(deleteFile(fileId));
+      toast({ title: "Файл удален", description: "Файл успешно удален" });
       loadFiles();
     } catch (error) {
-      console.error('Delete error:', error);
-      toast({
-        title: "Ошибка удаления",
-        description: "Не удалось удалить файл",
-        variant: "destructive",
-      });
+      toast({ title: "Ошибка удаления", description: "Не удалось удалить файл", variant: "destructive" });
     }
   };
 
@@ -213,7 +164,7 @@ export const MediaUpload = ({ category, title, onUploadSuccess }: MediaUploadPro
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => deleteFile(file.id, file.file_path)}
+                      onClick={() => handleDeleteFile(file.id)}
                       className="opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <X className="w-4 h-4" />
@@ -221,14 +172,14 @@ export const MediaUpload = ({ category, title, onUploadSuccess }: MediaUploadPro
                   </div>
                   {file.file_type === 'image' && (
                     <img
-                      src={file.file_path}
+                      src={file.url}
                       alt={file.description}
                       className="w-full h-32 object-cover rounded mt-2"
                     />
                   )}
                   {file.file_type === 'video' && (
                     <video
-                      src={file.file_path}
+                      src={file.url}
                       controls
                       className="w-full h-32 object-cover rounded mt-2"
                     />

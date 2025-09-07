@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-// NOTE: Media storage currently relies on Supabase. If moving media to Directus,
-// replace this component's data source accordingly.
-import { supabase } from "@/integrations/supabase/client";
+import { directus } from "@/integrations/directus/client";
+import { readFiles } from '@directus/sdk';
 import { 
   Carousel, 
   CarouselContent, 
@@ -16,10 +15,10 @@ import {
 } from "@/components/ui/dialog";
 import { SkeletonMedia } from "@/components/ui/skeleton";
 
-interface MediaFile {
+interface MediaFileUI {
   id: string;
   filename: string;
-  file_path: string;
+  url: string;
   file_type: 'image' | 'video';
   description: string;
 }
@@ -32,9 +31,10 @@ interface MediaDisplayProps {
 }
 
 export const MediaDisplay = ({ apartmentId, category, fallbackText, className }: MediaDisplayProps) => {
-  const [photos, setPhotos] = useState<MediaFile[]>([]);
-  const [videos, setVideos] = useState<MediaFile[]>([]);
+  const [photos, setPhotos] = useState<MediaFileUI[]>([]);
+  const [videos, setVideos] = useState<MediaFileUI[]>([]);
   const [loading, setLoading] = useState(true);
+  const DIRECTUS_URL = import.meta.env.VITE_DIRECTUS_URL || 'https://1.cycloscope.online';
 
   useEffect(() => {
     loadMedia();
@@ -45,23 +45,28 @@ export const MediaDisplay = ({ apartmentId, category, fallbackText, className }:
       const photoCategory = category ? `${category}-photos` : `apartment-${apartmentId}-photos`;
       const videoCategory = category ? `${category}-videos` : `apartment-${apartmentId}-videos`;
       
-      const [photosResult, videosResult] = await Promise.all([
-        supabase
-          .from('media_files')
-          .select('*')
-          .eq('category', photoCategory),
-        supabase
-          .from('media_files')
-          .select('*')
-          .eq('category', videoCategory)
+      const [photoFiles, videoFiles] = await Promise.all([
+        directus.request(readFiles({ filter: { title: { _eq: photoCategory } }, sort: ['-date_created'] })),
+        directus.request(readFiles({ filter: { title: { _eq: videoCategory } }, sort: ['-date_created'] })),
       ]);
 
-      if (photosResult.data) {
-        setPhotos(photosResult.data as MediaFile[]);
+      if (photoFiles) {
+        setPhotos(photoFiles.map((f: any) => ({
+          id: f.id,
+          filename: f.filename_download,
+          url: `${DIRECTUS_URL}/assets/${f.id}`,
+          file_type: f.type?.startsWith('video/') ? 'video' : 'image',
+          description: f.description || f.filename_download,
+        })));
       }
-      
-      if (videosResult.data) {
-        setVideos(videosResult.data as MediaFile[]);
+      if (videoFiles) {
+        setVideos(videoFiles.map((f: any) => ({
+          id: f.id,
+          filename: f.filename_download,
+          url: `${DIRECTUS_URL}/assets/${f.id}`,
+          file_type: f.type?.startsWith('video/') ? 'video' : 'image',
+          description: f.description || f.filename_download,
+        })));
       }
     } catch (error) {
       console.error('Error loading media:', error);
@@ -105,7 +110,7 @@ export const MediaDisplay = ({ apartmentId, category, fallbackText, className }:
                     <DialogTrigger asChild>
                       <div className="cursor-pointer group overflow-hidden rounded-xl shadow-gentle hover:shadow-premium transition-all duration-300 hover-lift">
                         <img
-                          src={photo.file_path}
+                          src={photo.url}
                           alt={photo.description || photo.filename}
                           className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
                           loading="lazy"
@@ -114,7 +119,7 @@ export const MediaDisplay = ({ apartmentId, category, fallbackText, className }:
                     </DialogTrigger>
                     <DialogContent className="max-w-4xl w-full">
                       <img
-                        src={photo.file_path}
+                        src={photo.url}
                         alt={photo.description || photo.filename}
                         className="w-full h-auto max-h-[80vh] object-contain"
                         loading="lazy"
@@ -143,7 +148,7 @@ export const MediaDisplay = ({ apartmentId, category, fallbackText, className }:
                   className="w-full h-64 object-cover"
                   preload="metadata"
                 >
-                  <source src={video.file_path} type="video/mp4" />
+                  <source src={video.url} type="video/mp4" />
                   Ваш браузер не поддерживает воспроизведение видео.
                 </video>
               </div>
