@@ -38,18 +38,27 @@ const ManagerPanel = () => {
 
   useEffect(() => {
     const load = async () => {
-      const items = await directus.request(readItems<ApartmentRecord>('apartments', { sort: ['-date_created'] }));
-      const mapped = (items || []).map(a => ({
-        id: a.id,
-        name: a.title || '',
-        number: a.apartment_number || '',
-        entrance_code: a.code_building,
-        lock_code: a.code_lock,
-        wifi_password: a.wifi_password,
-        address: a.base_address || null,
-        description: a.description || null,
-      }));
-      setApartments(mapped);
+      try {
+        const items = await directus.request(readItems<ApartmentRecord>('apartments', {
+          sort: ['-date_created'],
+          fields: ['*'],
+          limit: -1,
+        }));
+        const mapped = (items || []).map(a => ({
+          id: a.id,
+          name: a.title || '',
+          number: a.apartment_number || '',
+          entrance_code: a.code_building,
+          lock_code: a.code_lock,
+          wifi_password: a.wifi_password,
+          address: a.base_address || null,
+          description: a.description || null,
+        }));
+        setApartments(mapped);
+      } catch (e) {
+        console.error(e);
+        toast({ title: 'Не удалось загрузить апартаменты из Directus', variant: 'destructive' });
+      }
     };
     load();
   }, []);

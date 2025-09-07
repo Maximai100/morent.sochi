@@ -18,6 +18,11 @@
   </head>
 
   <body>
+    <script>
+      // Runtime overrides for Directus if envs missing in build
+      window.__DIRECTUS_URL = window.__DIRECTUS_URL || 'https://1.cycloscope.online';
+      window.__DIRECTUS_TOKEN = window.__DIRECTUS_TOKEN || '-cMyVc4fp4kN79rCjGqGzFJYvKurLeGB';
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

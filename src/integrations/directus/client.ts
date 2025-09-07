@@ -1,7 +1,7 @@
 import { createDirectus, rest, staticToken } from '@directus/sdk';
 
-const DIRECTUS_URL = import.meta.env.VITE_DIRECTUS_URL || 'https://1.cycloscope.online';
-const DIRECTUS_STATIC_TOKEN = import.meta.env.VITE_DIRECTUS_STATIC_TOKEN || '-cMyVc4fp4kN79rCjGqGzFJYvKurLeGB';
+const DIRECTUS_URL = (import.meta as any).env?.VITE_DIRECTUS_URL || (typeof window !== 'undefined' ? (window as any).__DIRECTUS_URL : undefined) || 'https://1.cycloscope.online';
+const DIRECTUS_STATIC_TOKEN = (import.meta as any).env?.VITE_DIRECTUS_STATIC_TOKEN || (typeof window !== 'undefined' ? (window as any).__DIRECTUS_TOKEN : undefined) || '-cMyVc4fp4kN79rCjGqGzFJYvKurLeGB';
 
 export const directus = createDirectus(DIRECTUS_URL)
   .with(staticToken(DIRECTUS_STATIC_TOKEN))
