@@ -1,0 +1,246 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Premium Seaside Design System - MORENT
+Colors: #006CFF (sea wave) + #FDBB3B (sun) + #F7F4EF (sandy)
+Typography: Manrope/Inter for body, Playfair Display for accents
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Brand Foundation - Premium Seaside */
+    --background: 42 33% 97%; /* #F7F4EF Sandy */
+    --foreground: 222 84% 5%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 84% 5%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 84% 5%;
+
+    /* MORENT Deep Blue from logo - Full Gradient Palette */
+    --primary: 211 85% 24%;
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 211 70% 35%;
+    --primary-glow: 211 60% 50%;
+    --primary-lighter: 211 50% 65%;
+    --primary-lightest: 211 40% 80%;
+    --primary-dark: 211 95% 18%;
+    --primary-darkest: 211 100% 12%;
+
+    /* Sandy Neutral */
+    --secondary: 42 20% 90%;
+    --secondary-foreground: 222 20% 20%;
+
+    /* Light Muted */
+    --muted: 42 15% 92%;
+    --muted-foreground: 210 15% 50%;
+
+    /* Sun Accent - #FDBB3B Gold Strategic */
+    --accent: 42 93% 60%;
+    --accent-foreground: 222 84% 5%;
+    --gold: 42 98% 62%;
+    --gold-light: 42 85% 75%;
+    --gold-dark: 42 100% 48%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 31% 91%;
+    --input: 214 31% 91%;
+    --ring: 214 100% 50%;
+
+    --radius: 1.5rem;
+
+    /* Gradients */
+    --gradient-ocean: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    --gradient-sunset: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--secondary)));
+    --gradient-wave: linear-gradient(180deg, hsl(var(--primary) / 0.1), transparent);
+
+    /* Enhanced Shadows */
+    --shadow-ocean: 0 20px 60px -10px hsl(var(--primary) / 0.3);
+    --shadow-coral: 0 10px 40px -5px hsl(var(--accent) / 0.25);
+    --shadow-gentle: 0 4px 16px -2px hsl(var(--primary) / 0.12);
+    --shadow-premium: 0 30px 80px -20px hsl(var(--primary) / 0.4);
+    --shadow-glow: 0 0 40px hsl(var(--primary-glow) / 0.3);
+    --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+
+    /* Glass Morphism */
+    --glass-backdrop: backdrop-blur(16px) saturate(180%);
+    --glass-bg: hsla(var(--background), 0.75);
+    --glass-border: hsla(var(--border), 0.18);
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  /* Glass Morphism Components */
+  .glass-card {
+    @apply backdrop-blur-xl bg-white/75 border border-white/20 shadow-glass;
+  }
+
+  .glass-modal {
+    @apply backdrop-blur-2xl bg-white/80 border border-white/30 shadow-premium;
+  }
+
+  /* Enhanced Interactive Elements */
+  .hover-lift {
+    @apply transition-all duration-300 ease-out hover:scale-105 hover:-translate-y-1 hover:shadow-premium;
+  }
+
+  .hover-glow {
+    @apply transition-all duration-300 ease-out hover:shadow-glow;
+  }
+
+  .btn-premium {
+    @apply relative overflow-hidden bg-gradient-ocean text-white font-medium rounded-xl px-6 py-3 shadow-ocean transition-all duration-300 hover:scale-105 hover:shadow-premium;
+  }
+
+  .btn-premium::before {
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full transition-transform duration-700;
+    content: '';
+  }
+
+  .btn-premium:hover::before {
+    @apply translate-x-full;
+  }
+
+  /* Typography Enhancements */
+  .text-gradient {
+    @apply bg-gradient-ocean bg-clip-text text-transparent font-bold;
+  }
+
+  /* Skeleton Loaders */
+  .skeleton {
+    @apply animate-pulse bg-muted rounded;
+  }
+
+  .skeleton-text {
+    @apply skeleton h-4 w-full;
+  }
+
+  .skeleton-avatar {
+    @apply skeleton h-12 w-12 rounded-full;
+  }
+
+  /* Copy Button Enhancement & Code Button Pulse */
+  .copy-success {
+    @apply animate-scale-in bg-emerald-500 text-white;
+  }
+  
+  .pulse-code {
+    @apply animate-glow-pulse bg-gradient-to-r from-gold to-accent text-white font-bold;
+  }
+  
+  /* Enhanced Typography Hierarchy */
+  h1 { @apply text-4xl md:text-6xl lg:text-7xl font-playfair font-bold leading-tight; }
+  h2 { @apply text-3xl md:text-4xl lg:text-5xl font-playfair font-semibold leading-tight; }
+  h3 { @apply text-xl md:text-2xl lg:text-3xl font-manrope font-semibold leading-snug; }
+  h4 { @apply text-lg md:text-xl font-manrope font-medium leading-snug; }
+  h5 { @apply text-base md:text-lg font-manrope font-medium leading-normal; }
+  h6 { @apply text-sm md:text-base font-manrope font-medium leading-normal; }
+  
+  p { @apply text-base leading-relaxed font-manrope; }
+  .text-lg { @apply leading-relaxed; }
+  .text-xl { @apply leading-relaxed; }
+  
+  /* Enhanced Interactive States */
+  .state-loading { @apply opacity-70 pointer-events-none animate-pulse; }
+  .state-error { @apply border-destructive bg-destructive/10 text-destructive; }
+  .state-success { @apply border-emerald-500 bg-emerald-50 text-emerald-700; }
+  
+  /* Stagger Animation */
+  .stagger-item {
+    @apply opacity-0 translate-y-8;
+    animation: fade-in 0.6s ease-out forwards;
+  }
+  .stagger-item:nth-child(1) { animation-delay: 0.1s; }
+  .stagger-item:nth-child(2) { animation-delay: 0.2s; }
+  .stagger-item:nth-child(3) { animation-delay: 0.3s; }
+  .stagger-item:nth-child(4) { animation-delay: 0.4s; }
+  .stagger-item:nth-child(5) { animation-delay: 0.5s; }
+  .stagger-item:nth-child(6) { animation-delay: 0.6s; }
+  
+  /* Wave Divider */
+  .wave-divider {
+    @apply relative overflow-hidden;
+  }
+  .wave-divider::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-full h-4;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 1200 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,60 C300,120 900,0 1200,60 L1200,120 L0,120 Z' fill='%23006CFF' fill-opacity='0.1'/%3E%3C/svg%3E") repeat-x;
+    background-size: 1200px 120px;
+  }
+  
+  /* Touch-Friendly Buttons */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+  }
+}
