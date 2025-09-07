@@ -80,6 +80,7 @@ export type Database = {
           guide_link: string | null
           id: string
           name: string
+          lock_code: string | null
           updated_at: string
         }
         Insert: {
@@ -90,6 +91,7 @@ export type Database = {
           guide_link?: string | null
           id?: string
           name: string
+          lock_code?: string | null
           updated_at?: string
         }
         Update: {
@@ -100,6 +102,7 @@ export type Database = {
           guide_link?: string | null
           id?: string
           name?: string
+          lock_code?: string | null
           updated_at?: string
         }
         Relationships: [

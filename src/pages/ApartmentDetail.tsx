@@ -29,6 +29,7 @@ interface Guest {
   check_in_date: string;
   check_out_date: string;
   guide_link: string | null;
+  lock_code: string | null;
 }
 
 const ApartmentDetail = () => {
@@ -41,7 +42,8 @@ const ApartmentDetail = () => {
   const [guestForm, setGuestForm] = useState({
     name: "",
     check_in_date: "",
-    check_out_date: ""
+    check_out_date: "",
+    lock_code: ""
   });
 
   useEffect(() => {
@@ -53,49 +55,37 @@ const ApartmentDetail = () => {
 
   const loadApartment = async () => {
     if (!apartmentId) return;
-
-    // Временно используем прямой запрос пока типы не обновились
-    const { data, error } = await supabase
-      .from('media_files')
+    const { data, error } = await (supabase as any)
+      .from('apartments')
       .select('*')
       .eq('id', apartmentId)
-      .limit(1);
-
-    // Поскольку типы еще не обновились, временно создадим моковые данные
-    const mockApartment: Apartment = {
-      id: apartmentId,
-      name: "Апартамент у моря",
-      number: "169",
-      description: "Красивый апартамент с видом на море",
-      address: "Нагорный тупик 13 корпус Б, Сочи",
-      wifi_password: "логин/пароль",
-      entrance_code: "#2020",
-      lock_code: "1111"
-    };
-    
-    setApartment(mockApartment);
+      .maybeSingle();
+    if (!error && data) setApartment(data);
   };
 
   const loadGuests = async () => {
     if (!apartmentId) return;
-    
-    // Временно используем моковые данные
-    const mockGuests: Guest[] = [];
-    setGuests(mockGuests);
+    const { data, error } = await supabase
+      .from('guests')
+      .select('*')
+      .eq('apartment_id', apartmentId)
+      .order('created_at', { ascending: false });
+    if (!error && data) setGuests(data as Guest[]);
   };
 
   const generateGuestLink = (guest: Guest): string => {
     const baseUrl = window.location.origin;
     const params = new URLSearchParams({
-      apartment: apartment?.number || '',
       guest: guest.name,
       checkin: guest.check_in_date,
-      checkout: guest.check_out_date,
-      entrance: apartment?.entrance_code || '',
-      lock: apartment?.lock_code || '',
-      wifi: apartment?.wifi_password || ''
+      checkout: guest.check_out_date
     });
-    return `${baseUrl}/guide?${params.toString()}`;
+    // Объединяем: коды и Wi-Fi берутся либо из брони, либо из апартамента
+    const lock = guest.lock_code || apartment?.lock_code || '';
+    if (lock) params.set('lock', lock);
+    if (apartment?.entrance_code) params.set('entrance', apartment.entrance_code);
+    if (apartment?.wifi_password) params.set('wifi', apartment.wifi_password);
+    return `${baseUrl}/apartment/${apartment?.id}?${params.toString()}`;
   };
 
   const saveGuest = async () => {
@@ -104,22 +94,105 @@ const ApartmentDetail = () => {
       return;
     }
 
-    const newGuest: Guest = {
-      id: Date.now().toString(),
-      apartment_id: apartmentId!,
-      name: guestForm.name,
-      check_in_date: guestForm.check_in_date,
-      check_out_date: guestForm.check_out_date,
-      guide_link: null
-    };
+    try {
+      if (selectedGuest) {
+        // Обновление
+        const { data, error } = await supabase
+          .from('guests')
+          .update({
+            name: guestForm.name,
+            check_in_date: guestForm.check_in_date,
+            check_out_date: guestForm.check_out_date,
+            lock_code: guestForm.lock_code || null,
+          })
+          .eq('id', selectedGuest.id)
+          .select('*')
+          .single();
 
-    // Генерируем ссылку
-    newGuest.guide_link = generateGuestLink(newGuest);
+        if (error) {
+          toast.error('Ошибка обновления гостя');
+          return;
+        }
 
-    setGuests(prev => [...prev, newGuest]);
-    setShowGuestForm(false);
-    setGuestForm({ name: "", check_in_date: "", check_out_date: "" });
-    toast.success('Гость добавлен');
+        const link = generateGuestLink({ ...(data as Guest), guide_link: null });
+        const { data: updated, error: updErr } = await supabase
+          .from('guests')
+          .update({ guide_link: link })
+          .eq('id', (data as Guest).id)
+          .select('*')
+          .single();
+        if (updErr) {
+          toast.error('Гость обновлен, но не удалось обновить ссылку');
+        }
+        setGuests(prev => prev.map(g => g.id === (updated as Guest).id ? (updated as Guest) : g));
+        toast.success('Гость обновлен');
+      } else {
+        // Создание
+        const insertPayload = {
+          apartment_id: apartmentId!,
+          name: guestForm.name,
+          check_in_date: guestForm.check_in_date,
+          check_out_date: guestForm.check_out_date,
+          lock_code: guestForm.lock_code || null,
+          guide_link: null as string | null,
+        };
+
+        const { data, error } = await supabase
+          .from('guests')
+          .insert(insertPayload)
+          .select('*')
+          .single();
+
+        if (error) {
+          toast.error('Ошибка сохранения гостя');
+          return;
+        }
+
+        // Генерируем и сохраняем ссылку
+        const link = generateGuestLink({ ...(data as Guest), guide_link: null });
+        const { data: updated, error: updErr } = await supabase
+          .from('guests')
+          .update({ guide_link: link })
+          .eq('id', (data as Guest).id)
+          .select('*')
+          .single();
+
+        if (updErr) {
+          toast.error('Гость сохранен, но не удалось создать ссылку');
+        }
+
+        setGuests(prev => [updated as Guest, ...prev]);
+        toast.success('Гость добавлен');
+      }
+
+      setShowGuestForm(false);
+      setSelectedGuest(null);
+      setGuestForm({ name: "", check_in_date: "", check_out_date: "", lock_code: "" });
+    } catch (e) {
+      toast.error('Ошибка сохранения');
+    }
+  };
+
+  const editGuest = (guest: Guest) => {
+    setSelectedGuest(guest);
+    setGuestForm({
+      name: guest.name,
+      check_in_date: guest.check_in_date,
+      check_out_date: guest.check_out_date,
+      lock_code: guest.lock_code || "",
+    });
+    setShowGuestForm(true);
+  };
+
+  const deleteGuest = async (guestId: string) => {
+    if (!confirm('Удалить бронирование?')) return;
+    const { error } = await supabase.from('guests').delete().eq('id', guestId);
+    if (error) {
+      toast.error('Ошибка удаления');
+      return;
+    }
+    setGuests(prev => prev.filter(g => g.id !== guestId));
+    toast.success('Бронирование удалено');
   };
 
   const copyLink = async (link: string) => {
@@ -224,6 +297,15 @@ const ApartmentDetail = () => {
                         placeholder="09.06.2025 в 12:00"
                       />
                     </div>
+                    <div>
+                      <Label htmlFor="guest_lock">Код электронного замка (для брони)</Label>
+                      <Input
+                        id="guest_lock"
+                        value={guestForm.lock_code}
+                        onChange={(e) => setGuestForm(prev => ({ ...prev, lock_code: e.target.value }))}
+                        placeholder={apartment?.lock_code || "1111"}
+                      />
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <Button onClick={saveGuest}>
@@ -278,6 +360,7 @@ const ApartmentDetail = () => {
                         variant="ghost"
                         size="sm"
                         className="flex-1"
+                        onClick={() => editGuest(guest)}
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
@@ -285,6 +368,7 @@ const ApartmentDetail = () => {
                         variant="ghost"
                         size="sm"
                         className="flex-1"
+                        onClick={() => deleteGuest(guest.id)}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>

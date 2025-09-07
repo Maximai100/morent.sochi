@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,33 +9,43 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MediaUpload } from "@/components/MediaUpload";
 import { useFormValidation, validationRules } from "@/components/FormValidation";
 import { Copy, Share, Settings, Upload, AlertCircle, ArrowLeft } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const ManagerPanel = () => {
   const { toast } = useToast();
+  const [apartments, setApartments] = useState<Array<{ id: string; name: string; number: string; entrance_code: string | null; lock_code: string | null; wifi_password: string | null }>>([]);
   const [formData, setFormData] = useState({
-    apartmentNumber: '169',
+    apartmentId: '',
     checkIn: '',
     checkOut: '',
-    entranceCode: '',
     electronicLockCode: '',
-    wifiPassword: '',
     guestName: ''
   });
+
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await supabase.from('apartments').select('id,name,number,entrance_code,lock_code,wifi_password').order('created_at', { ascending: false });
+      setApartments(data || []);
+    };
+    load();
+  }, []);
 
   const { errors, validateForm, validateAndClearError, hasErrors } = useFormValidation(validationRules);
 
   const generateGuestLink = () => {
     const baseUrl = window.location.origin;
+    const selected = apartments.find(a => a.id === formData.apartmentId);
     const params = new URLSearchParams({
-      apartment: formData.apartmentNumber,
+      guest: formData.guestName,
       checkin: formData.checkIn,
-      checkout: formData.checkOut,
-      entrance: formData.entranceCode,
-      lock: formData.electronicLockCode,
-      wifi: formData.wifiPassword
+      checkout: formData.checkOut
     });
-    
-    return `${baseUrl}/guide?${params.toString()}`;
+    const lock = formData.electronicLockCode || selected?.lock_code || '';
+    if (lock) params.set('lock', lock);
+    if (selected?.entrance_code) params.set('entrance', selected.entrance_code);
+    if (selected?.wifi_password) params.set('wifi', selected.wifi_password);
+    return `${baseUrl}/apartment/${formData.apartmentId}?${params.toString()}`;
   };
 
   const handleCopyLink = () => {
@@ -61,6 +71,50 @@ const ManagerPanel = () => {
   const updateFormData = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     validateAndClearError(field, value);
+  };
+
+  const createBooking = async () => {
+    if (!formData.apartmentId) {
+      toast({ title: "Выберите апартамент", variant: "destructive" });
+      return;
+    }
+    if (!formData.guestName || !formData.checkIn || !formData.checkOut) {
+      toast({ title: "Заполните ФИО и даты", variant: "destructive" });
+      return;
+    }
+
+    try {
+      const insertPayload = {
+        apartment_id: formData.apartmentId,
+        name: formData.guestName,
+        check_in_date: formData.checkIn,
+        check_out_date: formData.checkOut,
+        lock_code: formData.electronicLockCode || null,
+        guide_link: null as string | null,
+      };
+
+      const { data, error } = await supabase
+        .from('guests')
+        .insert(insertPayload)
+        .select('*')
+        .single();
+
+      if (error) {
+        toast({ title: "Ошибка создания бронирования", variant: "destructive" });
+        return;
+      }
+
+      const link = generateGuestLink();
+      await supabase
+        .from('guests')
+        .update({ guide_link: link })
+        .eq('id', (data as any).id);
+
+      await navigator.clipboard.writeText(link);
+      toast({ title: "Бронирование создано", description: "Ссылка скопирована в буфер обмена" });
+    } catch (e) {
+      toast({ title: "Ошибка", description: "Не удалось создать бронирование", variant: "destructive" });
+    }
   };
 
   return (
@@ -121,20 +175,17 @@ const ManagerPanel = () => {
                     </div>
 
                     <div>
-                      <Label htmlFor="apartment">Номер апартаментов</Label>
-                      <Input
-                        id="apartment"
-                        value={formData.apartmentNumber}
-                        onChange={(e) => updateFormData('apartmentNumber', e.target.value)}
-                        placeholder="169"
-                        className={errors.apartmentNumber ? "border-destructive" : ""}
-                      />
-                      {errors.apartmentNumber && (
-                        <div className="flex items-center gap-1 text-destructive text-sm mt-1">
-                          <AlertCircle className="w-4 h-4" />
-                          {errors.apartmentNumber}
-                        </div>
-                      )}
+                      <Label>Апартамент</Label>
+                      <Select value={formData.apartmentId} onValueChange={(v) => updateFormData('apartmentId', v)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Выберите апартамент" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {apartments.map(a => (
+                            <SelectItem key={a.id} value={a.id}>{a.name} №{a.number}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -173,24 +224,8 @@ const ManagerPanel = () => {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="entrance">Код от подъезда</Label>
-                        <Input
-                          id="entrance"
-                          value={formData.entranceCode}
-                          onChange={(e) => updateFormData('entranceCode', e.target.value)}
-                          placeholder="#2020"
-                          className={errors.entranceCode ? "border-destructive" : ""}
-                        />
-                        {errors.entranceCode && (
-                          <div className="flex items-center gap-1 text-destructive text-sm mt-1">
-                            <AlertCircle className="w-4 h-4" />
-                            {errors.entranceCode}
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <Label htmlFor="lock">Код электронного замка</Label>
+                      <div className="md:col-span-2">
+                        <Label htmlFor="lock">Код электронного замка (можно оставить пустым для кода из карточки)</Label>
                         <Input
                           id="lock"
                           value={formData.electronicLockCode}
@@ -205,23 +240,6 @@ const ManagerPanel = () => {
                           </div>
                         )}
                       </div>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="wifi">Wi-Fi логин/пароль</Label>
-                      <Input
-                        id="wifi"
-                        value={formData.wifiPassword}
-                        onChange={(e) => updateFormData('wifiPassword', e.target.value)}
-                        placeholder="логин/пароль"
-                        className={errors.wifiPassword ? "border-destructive" : ""}
-                      />
-                      {errors.wifiPassword && (
-                        <div className="flex items-center gap-1 text-destructive text-sm mt-1">
-                          <AlertCircle className="w-4 h-4" />
-                          {errors.wifiPassword}
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>
@@ -257,6 +275,14 @@ const ManagerPanel = () => {
                     >
                       <Share className="w-4 h-4 mr-2" />
                       Подготовить сообщение для гостя
+                    </Button>
+
+                    <Button 
+                      onClick={createBooking}
+                      variant="default"
+                      className="w-full"
+                    >
+                      Создать бронирование
                     </Button>
                   </div>
 

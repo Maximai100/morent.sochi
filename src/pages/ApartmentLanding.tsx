@@ -45,6 +45,9 @@ const ApartmentLanding = () => {
   const guestName = urlParams.get('guest') || '';
   const checkInDate = urlParams.get('checkin') || '';
   const checkOutDate = urlParams.get('checkout') || '';
+  const entranceCodeOverride = urlParams.get('entrance') || '';
+  const lockCodeOverride = urlParams.get('lock') || '';
+  const wifiOverride = urlParams.get('wifi') || '';
 
   useEffect(() => {
     if (apartmentId) {
@@ -115,9 +118,9 @@ const ApartmentLanding = () => {
         apartmentNumber={apartment.number}
         checkIn={checkInDate}
         checkOut={checkOutDate}
-        entranceCode={apartment.entrance_code || ''}
-        electronicLockCode={apartment.lock_code || ''}
-        wifiPassword={apartment.wifi_password || ''}
+        entranceCode={entranceCodeOverride || apartment.entrance_code || ''}
+        electronicLockCode={lockCodeOverride || apartment.lock_code || ''}
+        wifiPassword={wifiOverride || apartment.wifi_password || ''}
       />
       
       <WaveDivider />
