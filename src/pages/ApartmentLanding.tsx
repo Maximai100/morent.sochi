@@ -9,7 +9,8 @@ import { ContactsSection } from "@/components/ContactsSection";
 import { LoyaltySection } from "@/components/LoyaltySection";
 import { YandexMap } from "@/components/YandexMap";
 import { WaveDivider } from "@/components/WaveDivider";
-import { supabase } from "@/integrations/supabase/client";
+import { directus, ApartmentRecord } from "@/integrations/directus/client";
+import { readItem } from '@directus/sdk';
 
 interface Apartment {
   id: string;
@@ -59,20 +60,33 @@ const ApartmentLanding = () => {
     if (!apartmentId) return;
 
     try {
-      // Временно используем any для обхода проблем с типами
-      const { data, error } = await (supabase as any)
-        .from('apartments')
-        .select('*')
-        .eq('id', apartmentId)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error loading apartment:', error);
-        return;
-      }
-
-      if (data) {
-        setApartment(data);
+      const item = await directus.request(readItem<ApartmentRecord>('apartments', apartmentId));
+      if (item) {
+        const mapped: Apartment = {
+          id: item.id,
+          name: item.title || '',
+          number: item.apartment_number || '',
+          description: item.description || null,
+          address: item.base_address || null,
+          wifi_password: item.wifi_password || null,
+          entrance_code: item.code_building || null,
+          lock_code: item.code_lock || null,
+          faq_data: [
+            { question: 'Заселение', answer: item.faq_checkin || '' },
+            { question: 'Апартаменты', answer: item.faq_apartment || '' },
+            { question: 'Территория', answer: item.faq_area || '' },
+          ],
+          hero_title: item.title || 'Апартамент',
+          hero_subtitle: item.description || '',
+          contact_info: {
+            phone: item.manager_phone || '',
+            whatsapp: item.manager_phone || '',
+            telegram: item.manager_phone || '',
+          },
+          map_coordinates: { lat: 43.5855, lng: 39.7231 },
+          loyalty_info: '',
+        } as any;
+        setApartment(mapped);
       }
     } catch (error) {
       console.error('Error:', error);

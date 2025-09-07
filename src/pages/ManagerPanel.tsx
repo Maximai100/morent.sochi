@@ -9,7 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MediaUpload } from "@/components/MediaUpload";
 import { useFormValidation, validationRules } from "@/components/FormValidation";
 import { Copy, Share, Settings, Upload, AlertCircle, ArrowLeft } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { directus, ApartmentRecord, BookingRecord } from "@/integrations/directus/client";
+import { readItems, createItem, updateItem } from '@directus/sdk';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const ManagerPanel = () => {
@@ -25,8 +26,16 @@ const ManagerPanel = () => {
 
   useEffect(() => {
     const load = async () => {
-      const { data } = await supabase.from('apartments').select('id,name,number,entrance_code,lock_code,wifi_password').order('created_at', { ascending: false });
-      setApartments(data || []);
+      const items = await directus.request(readItems<ApartmentRecord>('apartments', { sort: ['-date_created'] }));
+      const mapped = (items || []).map(a => ({
+        id: a.id,
+        name: a.title || '',
+        number: a.apartment_number || '',
+        entrance_code: a.code_building,
+        lock_code: a.code_lock,
+        wifi_password: a.wifi_password,
+      }));
+      setApartments(mapped);
     };
     load();
   }, []);
@@ -84,31 +93,16 @@ const ManagerPanel = () => {
     }
 
     try {
-      const insertPayload = {
+      const created = await directus.request(createItem('bookings', {
         apartment_id: formData.apartmentId,
-        name: formData.guestName,
-        check_in_date: formData.checkIn,
-        check_out_date: formData.checkOut,
+        guest_name: formData.guestName,
+        checkin_date: formData.checkIn || null,
+        checkout_date: formData.checkOut || null,
         lock_code: formData.electronicLockCode || null,
-        guide_link: null as string | null,
-      };
-
-      const { data, error } = await supabase
-        .from('guests')
-        .insert(insertPayload)
-        .select('*')
-        .single();
-
-      if (error) {
-        toast({ title: "Ошибка создания бронирования", variant: "destructive" });
-        return;
-      }
+      }));
 
       const link = generateGuestLink();
-      await supabase
-        .from('guests')
-        .update({ guide_link: link })
-        .eq('id', (data as any).id);
+      await directus.request(updateItem('bookings', (created as any).id, { guide_link: link } as any));
 
       await navigator.clipboard.writeText(link);
       toast({ title: "Бронирование создано", description: "Ссылка скопирована в буфер обмена" });

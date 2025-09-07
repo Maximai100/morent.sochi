@@ -5,29 +5,22 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Plus, Trash2, ExternalLink } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { directus, ApartmentRecord } from "@/integrations/directus/client";
+import { readItem, updateItem } from '@directus/sdk';
 import { toast } from "sonner";
 
 interface ApartmentContent {
   id: string;
-  hero_title: string;
-  hero_subtitle: string;
-  description: string | null;
-  address: string | null;
-  contact_info: {
-    phone: string;
-    whatsapp: string;
-    telegram: string;
-  };
-  map_coordinates: {
-    lat: number;
-    lng: number;
-  };
-  loyalty_info: string;
-  faq_data: Array<{
-    question: string;
-    answer: string;
-  }>;
+  title: string;
+  description: string;
+  address: string;
+  manager_name: string;
+  manager_phone: string;
+  manager_email: string;
+  faq_checkin: string;
+  faq_apartment: string;
+  faq_area: string;
+  map_embed_code: string;
 }
 
 interface ApartmentContentEditorProps {
@@ -44,20 +37,21 @@ export const ApartmentContentEditor = ({ apartmentId }: ApartmentContentEditorPr
 
   const loadContent = async () => {
     try {
-      // Временно используем any для обхода проблем с типами пока они не обновятся
-      const { data, error } = await (supabase as any)
-        .from('apartments')
-        .select('*')
-        .eq('id', apartmentId)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error loading content:', error);
-        return;
-      }
-
-      if (data) {
-        setContent(data);
+      const item = await directus.request(readItem<ApartmentRecord>('apartments', apartmentId));
+      if (item) {
+        setContent({
+          id: item.id,
+          title: item.title || '',
+          description: item.description || '',
+          address: item.base_address || '',
+          manager_name: item.manager_name || '',
+          manager_phone: item.manager_phone || '',
+          manager_email: item.manager_email || '',
+          faq_checkin: item.faq_checkin || '',
+          faq_apartment: item.faq_apartment || '',
+          faq_area: item.faq_area || '',
+          map_embed_code: item.map_embed_code || '',
+        });
       }
     } catch (error) {
       console.error('Error:', error);
@@ -70,26 +64,18 @@ export const ApartmentContentEditor = ({ apartmentId }: ApartmentContentEditorPr
     if (!content) return;
 
     try {
-      // Временно используем any для обхода проблем с типами
-      const { error } = await (supabase as any)
-        .from('apartments')
-        .update({
-          hero_title: content.hero_title,
-          hero_subtitle: content.hero_subtitle,
-          description: content.description,
-          address: content.address,
-          contact_info: content.contact_info,
-          map_coordinates: content.map_coordinates,
-          loyalty_info: content.loyalty_info,
-          faq_data: content.faq_data
-        })
-        .eq('id', apartmentId);
-
-      if (error) {
-        toast.error('Ошибка сохранения');
-        return;
-      }
-
+      await directus.request(updateItem('apartments', apartmentId, {
+        title: content.title,
+        description: content.description,
+        base_address: content.address,
+        manager_name: content.manager_name,
+        manager_phone: content.manager_phone,
+        manager_email: content.manager_email,
+        faq_checkin: content.faq_checkin,
+        faq_apartment: content.faq_apartment,
+        faq_area: content.faq_area,
+        map_embed_code: content.map_embed_code,
+      }));
       toast.success('Контент сохранен');
     } catch (error) {
       toast.error('Ошибка сохранения');
@@ -145,40 +131,32 @@ export const ApartmentContentEditor = ({ apartmentId }: ApartmentContentEditorPr
         </div>
       </div>
 
-      {/* Hero Section */}
+      {/* Заголовки */}
       <Card>
         <CardHeader>
-          <CardTitle>Главный экран</CardTitle>
+          <CardTitle>Заголовок и описание</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
             <Label htmlFor="hero_title">Заголовок</Label>
             <Input
               id="hero_title"
-              value={content.hero_title}
-              onChange={(e) => setContent({ ...content, hero_title: e.target.value })}
-            />
-          </div>
-          <div>
-            <Label htmlFor="hero_subtitle">Подзаголовок</Label>
-            <Input
-              id="hero_subtitle"
-              value={content.hero_subtitle}
-              onChange={(e) => setContent({ ...content, hero_subtitle: e.target.value })}
+              value={content.title}
+              onChange={(e) => setContent({ ...content, title: e.target.value })}
             />
           </div>
           <div>
             <Label htmlFor="description">Описание</Label>
             <Textarea
               id="description"
-              value={content.description || ''}
+              value={content.description}
               onChange={(e) => setContent({ ...content, description: e.target.value })}
             />
           </div>
         </CardContent>
       </Card>
 
-      {/* Address & Map */}
+      {/* Адрес и карта */}
       <Card>
         <CardHeader>
           <CardTitle>Адрес и карта</CardTitle>
@@ -188,42 +166,23 @@ export const ApartmentContentEditor = ({ apartmentId }: ApartmentContentEditorPr
             <Label htmlFor="address">Адрес</Label>
             <Input
               id="address"
-              value={content.address || ''}
+              value={content.address}
               onChange={(e) => setContent({ ...content, address: e.target.value })}
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="map_lat">Широта</Label>
-              <Input
-                id="map_lat"
-                type="number"
-                step="any"
-                value={content.map_coordinates.lat}
-                onChange={(e) => setContent({
-                  ...content,
-                  map_coordinates: { ...content.map_coordinates, lat: parseFloat(e.target.value) }
-                })}
-              />
-            </div>
-            <div>
-              <Label htmlFor="map_lng">Долгота</Label>
-              <Input
-                id="map_lng"
-                type="number"
-                step="any"
-                value={content.map_coordinates.lng}
-                onChange={(e) => setContent({
-                  ...content,
-                  map_coordinates: { ...content.map_coordinates, lng: parseFloat(e.target.value) }
-                })}
-              />
-            </div>
+          <div>
+            <Label htmlFor="map_embed">Код встраивания Яндекс.Карт</Label>
+            <Textarea
+              id="map_embed"
+              value={content.map_embed_code}
+              onChange={(e) => setContent({ ...content, map_embed_code: e.target.value })}
+              rows={3}
+            />
           </div>
         </CardContent>
       </Card>
 
-      {/* Contact Info */}
+      {/* Контакты */}
       <Card>
         <CardHeader>
           <CardTitle>Контактная информация</CardTitle>
@@ -233,95 +192,39 @@ export const ApartmentContentEditor = ({ apartmentId }: ApartmentContentEditorPr
             <Label htmlFor="phone">Телефон</Label>
             <Input
               id="phone"
-              value={content.contact_info.phone}
-              onChange={(e) => setContent({
-                ...content,
-                contact_info: { ...content.contact_info, phone: e.target.value }
-              })}
+              value={content.manager_phone}
+              onChange={(e) => setContent({ ...content, manager_phone: e.target.value })}
             />
           </div>
           <div>
-            <Label htmlFor="whatsapp">WhatsApp</Label>
-            <Input
-              id="whatsapp"
-              value={content.contact_info.whatsapp}
-              onChange={(e) => setContent({
-                ...content,
-                contact_info: { ...content.contact_info, whatsapp: e.target.value }
-              })}
-            />
+            <Label htmlFor="manager_name">Имя менеджера</Label>
+            <Input id="manager_name" value={content.manager_name} onChange={(e) => setContent({ ...content, manager_name: e.target.value })} />
           </div>
           <div>
-            <Label htmlFor="telegram">Telegram</Label>
-            <Input
-              id="telegram"
-              value={content.contact_info.telegram}
-              onChange={(e) => setContent({
-                ...content,
-                contact_info: { ...content.contact_info, telegram: e.target.value }
-              })}
-            />
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" value={content.manager_email} onChange={(e) => setContent({ ...content, manager_email: e.target.value })} />
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Loyalty Program */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Программа лояльности</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Textarea
-            value={content.loyalty_info}
-            onChange={(e) => setContent({ ...content, loyalty_info: e.target.value })}
-            rows={3}
-          />
         </CardContent>
       </Card>
 
       {/* FAQ */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Часто задаваемые вопросы</CardTitle>
-            <Button onClick={addFAQ} size="sm">
-              <Plus className="w-4 h-4 mr-2" />
-              Добавить FAQ
-            </Button>
-          </div>
+          <CardTitle>Часто задаваемые вопросы</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {content.faq_data.map((faq, index) => (
-            <div key={index} className="border p-4 rounded-lg space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="font-medium">Вопрос {index + 1}</span>
-                <Button
-                  onClick={() => removeFAQ(index)}
-                  variant="ghost"
-                  size="sm"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-              <div>
-                <Label>Вопрос</Label>
-                <Input
-                  value={faq.question}
-                  onChange={(e) => updateFAQ(index, 'question', e.target.value)}
-                  placeholder="Введите вопрос"
-                />
-              </div>
-              <div>
-                <Label>Ответ</Label>
-                <Textarea
-                  value={faq.answer}
-                  onChange={(e) => updateFAQ(index, 'answer', e.target.value)}
-                  placeholder="Введите ответ"
-                  rows={2}
-                />
-              </div>
-            </div>
-          ))}
+          <div>
+            <Label>FAQ: Заселение</Label>
+            <Textarea value={content.faq_checkin} onChange={(e) => setContent({ ...content, faq_checkin: e.target.value })} rows={3} />
+          </div>
+          <div>
+            <Label>FAQ: Апартаменты</Label>
+            <Textarea value={content.faq_apartment} onChange={(e) => setContent({ ...content, faq_apartment: e.target.value })} rows={3} />
+          </div>
+          <div>
+            <Label>FAQ: Территория</Label>
+            <Textarea value={content.faq_area} onChange={(e) => setContent({ ...content, faq_area: e.target.value })} rows={3} />
+          </div>
         </CardContent>
       </Card>
     </div>

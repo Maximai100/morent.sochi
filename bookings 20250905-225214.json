@@ -1,0 +1,82 @@
+[
+	{
+		"id": "1adc9060-1e63-459c-b90b-c3191c7ee556",
+		"date_created": "2025-08-29T17:58:01.980Z",
+		"date_updated": null,
+		"guest_name": "ясяс",
+		"apartment_id": "2787379b-0f57-43be-89c9-32e84683be71",
+		"slug": "ясяс.1756490278557",
+		"checkin_date": null,
+		"checkout_date": null
+	},
+	{
+		"id": "29030f46-dd66-4b5f-b598-7f4a95561be7",
+		"date_created": "2025-09-05T19:42:09.621Z",
+		"date_updated": null,
+		"guest_name": "Светлана Игоревная",
+		"apartment_id": "6a2ab5f6-1084-4236-bd8b-620bd372e798",
+		"slug": "светлана.игоревная.1757101329010",
+		"checkin_date": null,
+		"checkout_date": null
+	},
+	{
+		"id": "44e3ab9d-2154-4708-8998-8f7cd9c13b9c",
+		"date_created": "2025-09-02T11:41:23.700Z",
+		"date_updated": null,
+		"guest_name": "Максим Т",
+		"apartment_id": "65681e42-613e-4816-ae5d-91bec6c09854",
+		"slug": "максим.т.1756813280187",
+		"checkin_date": null,
+		"checkout_date": null
+	},
+	{
+		"id": "8c165738-b296-4193-b661-b2159d3fb06c",
+		"date_created": "2025-09-05T15:27:06.492Z",
+		"date_updated": null,
+		"guest_name": "Василиса Петровна",
+		"apartment_id": "439723a2-be67-4674-bbd4-2ccc378d47e3",
+		"slug": "василиса.петровна.1757086020906",
+		"checkin_date": null,
+		"checkout_date": null
+	},
+	{
+		"id": "a6200279-1f2c-4f1e-8288-ca3eadc907f7",
+		"date_created": "2025-08-05T20:10:24.634Z",
+		"date_updated": "2025-08-12T09:31:40.159Z",
+		"guest_name": "Максим",
+		"apartment_id": "6a2ab5f6-1084-4236-bd8b-620bd372e798",
+		"slug": "максим.1754991099715",
+		"checkin_date": null,
+		"checkout_date": null
+	},
+	{
+		"id": "ad329c82-0140-4a8c-a145-cc1d8cc8202f",
+		"date_created": "2025-08-17T10:39:55.962Z",
+		"date_updated": null,
+		"guest_name": "Иван",
+		"apartment_id": "439723a2-be67-4674-bbd4-2ccc378d47e3",
+		"slug": "иван.1755427191984",
+		"checkin_date": null,
+		"checkout_date": null
+	},
+	{
+		"id": "b49b5fae-ff72-4486-b141-5e760967caa0",
+		"date_created": "2025-08-12T08:56:46.039Z",
+		"date_updated": "2025-08-17T10:39:25.486Z",
+		"guest_name": "Максим",
+		"apartment_id": "02bcfe45-7edc-4257-9d1e-0eea16173c6c",
+		"slug": "максим.1754988996395",
+		"checkin_date": null,
+		"checkout_date": null
+	},
+	{
+		"id": "bdcf41f9-04f9-4bbe-8e0e-8366534d31bd",
+		"date_created": "2025-09-02T11:38:24.827Z",
+		"date_updated": null,
+		"guest_name": "Ткачук Максим",
+		"apartment_id": "02bcfe45-7edc-4257-9d1e-0eea16173c6c",
+		"slug": "ткачук.максим.1756813100419",
+		"checkin_date": null,
+		"checkout_date": null
+	}
+]

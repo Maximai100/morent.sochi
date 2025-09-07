@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+// NOTE: Media storage currently relies on Supabase. If moving media to Directus,
+// replace this component's data source accordingly.
 import { supabase } from "@/integrations/supabase/client";
 import { 
   Carousel, 

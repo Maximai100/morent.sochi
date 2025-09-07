@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MediaUpload } from "@/components/MediaUpload";
 import { ApartmentContentEditor } from "@/components/ApartmentContentEditor";
-import { supabase } from "@/integrations/supabase/client";
+import { directus, ApartmentRecord, BookingRecord } from "@/integrations/directus/client";
+import { readItems, readItem, createItem, updateItem, deleteItem } from '@directus/sdk';
 import { toast } from "sonner";
 
 interface Apartment {
@@ -55,22 +56,38 @@ const ApartmentDetail = () => {
 
   const loadApartment = async () => {
     if (!apartmentId) return;
-    const { data, error } = await (supabase as any)
-      .from('apartments')
-      .select('*')
-      .eq('id', apartmentId)
-      .maybeSingle();
-    if (!error && data) setApartment(data);
+    const item = await directus.request(readItem<ApartmentRecord>('apartments', apartmentId));
+    if (item) {
+      const mapped: Apartment = {
+        id: item.id,
+        name: item.title || '',
+        number: item.apartment_number || '',
+        description: item.description || null,
+        address: item.base_address || null,
+        wifi_password: item.wifi_password || null,
+        entrance_code: item.code_building || null,
+        lock_code: item.code_lock || null,
+      };
+      setApartment(mapped as any);
+    }
   };
 
   const loadGuests = async () => {
     if (!apartmentId) return;
-    const { data, error } = await supabase
-      .from('guests')
-      .select('*')
-      .eq('apartment_id', apartmentId)
-      .order('created_at', { ascending: false });
-    if (!error && data) setGuests(data as Guest[]);
+    const items = await directus.request(readItems<BookingRecord>('bookings', {
+      filter: { apartment_id: { _eq: apartmentId } },
+      sort: ['-date_created']
+    }));
+    const mapped: Guest[] = (items || []).map((b) => ({
+      id: b.id,
+      apartment_id: b.apartment_id,
+      name: (b as any).guest_name || '',
+      check_in_date: (b as any).checkin_date || '',
+      check_out_date: (b as any).checkout_date || '',
+      guide_link: (b as any).guide_link || null,
+      lock_code: (b as any).lock_code || null,
+    }));
+    setGuests(mapped);
   };
 
   const generateGuestLink = (guest: Guest): string => {
@@ -96,72 +113,36 @@ const ApartmentDetail = () => {
 
     try {
       if (selectedGuest) {
-        // Обновление
-        const { data, error } = await supabase
-          .from('guests')
-          .update({
-            name: guestForm.name,
-            check_in_date: guestForm.check_in_date,
-            check_out_date: guestForm.check_out_date,
-            lock_code: guestForm.lock_code || null,
-          })
-          .eq('id', selectedGuest.id)
-          .select('*')
-          .single();
-
-        if (error) {
-          toast.error('Ошибка обновления гостя');
-          return;
-        }
-
-        const link = generateGuestLink({ ...(data as Guest), guide_link: null });
-        const { data: updated, error: updErr } = await supabase
-          .from('guests')
-          .update({ guide_link: link })
-          .eq('id', (data as Guest).id)
-          .select('*')
-          .single();
-        if (updErr) {
-          toast.error('Гость обновлен, но не удалось обновить ссылку');
-        }
-        setGuests(prev => prev.map(g => g.id === (updated as Guest).id ? (updated as Guest) : g));
+        const updated = await directus.request(updateItem('bookings', selectedGuest.id, {
+          guest_name: guestForm.name,
+          checkin_date: guestForm.check_in_date || null,
+          checkout_date: guestForm.check_out_date || null,
+          lock_code: guestForm.lock_code || null,
+        }));
+        const link = generateGuestLink({ ...(selectedGuest as Guest), name: guestForm.name, check_in_date: guestForm.check_in_date, check_out_date: guestForm.check_out_date, lock_code: guestForm.lock_code || null, guide_link: null });
+        await directus.request(updateItem('bookings', selectedGuest.id, { guide_link: link } as any));
+        setGuests(prev => prev.map(g => g.id === selectedGuest.id ? { ...g, name: guestForm.name, check_in_date: guestForm.check_in_date, check_out_date: guestForm.check_out_date, lock_code: guestForm.lock_code || null, guide_link: link } : g));
         toast.success('Гость обновлен');
       } else {
-        // Создание
-        const insertPayload = {
+        const created = await directus.request(createItem('bookings', {
+          apartment_id: apartmentId!,
+          guest_name: guestForm.name,
+          checkin_date: guestForm.check_in_date || null,
+          checkout_date: guestForm.check_out_date || null,
+          lock_code: guestForm.lock_code || null,
+        }));
+        const tempGuest: Guest = {
+          id: (created as any).id,
           apartment_id: apartmentId!,
           name: guestForm.name,
           check_in_date: guestForm.check_in_date,
           check_out_date: guestForm.check_out_date,
+          guide_link: null,
           lock_code: guestForm.lock_code || null,
-          guide_link: null as string | null,
         };
-
-        const { data, error } = await supabase
-          .from('guests')
-          .insert(insertPayload)
-          .select('*')
-          .single();
-
-        if (error) {
-          toast.error('Ошибка сохранения гостя');
-          return;
-        }
-
-        // Генерируем и сохраняем ссылку
-        const link = generateGuestLink({ ...(data as Guest), guide_link: null });
-        const { data: updated, error: updErr } = await supabase
-          .from('guests')
-          .update({ guide_link: link })
-          .eq('id', (data as Guest).id)
-          .select('*')
-          .single();
-
-        if (updErr) {
-          toast.error('Гость сохранен, но не удалось создать ссылку');
-        }
-
-        setGuests(prev => [updated as Guest, ...prev]);
+        const link = generateGuestLink(tempGuest);
+        await directus.request(updateItem('bookings', (created as any).id, { guide_link: link } as any));
+        setGuests(prev => [{ ...tempGuest, guide_link: link }, ...prev]);
         toast.success('Гость добавлен');
       }
 
@@ -186,13 +167,13 @@ const ApartmentDetail = () => {
 
   const deleteGuest = async (guestId: string) => {
     if (!confirm('Удалить бронирование?')) return;
-    const { error } = await supabase.from('guests').delete().eq('id', guestId);
-    if (error) {
+    try {
+      await directus.request(deleteItem('bookings', guestId));
+      setGuests(prev => prev.filter(g => g.id !== guestId));
+      toast.success('Бронирование удалено');
+    } catch (e) {
       toast.error('Ошибка удаления');
-      return;
     }
-    setGuests(prev => prev.filter(g => g.id !== guestId));
-    toast.success('Бронирование удалено');
   };
 
   const copyLink = async (link: string) => {

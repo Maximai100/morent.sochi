@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
+import { directus, ApartmentRecord, BookingRecord } from "@/integrations/directus/client";
+import { readItems, createItem, updateItem, deleteItem } from '@directus/sdk';
 import { toast } from "sonner";
 
 interface Apartment {
@@ -50,37 +51,36 @@ const ApartmentsManager = () => {
 
   const loadApartments = async () => {
     try {
-      const { data, error } = await supabase
-        .from('apartments')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error loading apartments:', error);
-        toast.error('Ошибка загрузки апартаментов');
-        return;
-      }
-
-      setApartments(data || []);
+      const items = await directus.request(readItems<ApartmentRecord>('apartments', { sort: ['-date_created'] }));
+      const mapped: Apartment[] = (items || []).map((a) => ({
+        id: a.id,
+        name: a.title || '',
+        number: a.apartment_number || '',
+        description: a.description,
+        address: a.base_address,
+        wifi_password: a.wifi_password,
+        entrance_code: a.code_building,
+        lock_code: a.code_lock,
+      }));
+      setApartments(mapped);
     } catch (error) {
       console.error('Error:', error);
-      toast.error('Ошибка подключения к базе данных');
+      toast.error('Ошибка загрузки апартаментов');
     }
   };
 
   const loadGuests = async () => {
     try {
-      const { data, error } = await supabase
-        .from('guests')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error loading guests:', error);
-        return;
-      }
-
-      setGuests(data || []);
+      const items = await directus.request(readItems<BookingRecord>('bookings', { sort: ['-date_created'] }));
+      const mapped: Guest[] = (items || []).map((b) => ({
+        id: b.id,
+        apartment_id: b.apartment_id,
+        name: (b as any).guest_name || '',
+        check_in_date: (b as any).checkin_date || '',
+        check_out_date: (b as any).checkout_date || '',
+        guide_link: null,
+      }));
+      setGuests(mapped);
     } catch (error) {
       console.error('Error:', error);
     }
@@ -95,42 +95,26 @@ const ApartmentsManager = () => {
     try {
       if (selectedApartment) {
         // Обновление существующего апартамента
-        const { error } = await supabase
-          .from('apartments')
-          .update({
-            name: apartmentForm.name,
-            number: apartmentForm.number,
-            description: apartmentForm.description || null,
-            address: apartmentForm.address || null,
-            wifi_password: apartmentForm.wifi_password || null,
-            entrance_code: apartmentForm.entrance_code || null,
-            lock_code: apartmentForm.lock_code || null
-          })
-          .eq('id', selectedApartment.id);
-
-        if (error) {
-          toast.error('Ошибка обновления апартамента');
-          return;
-        }
+        await directus.request(updateItem('apartments', selectedApartment.id, {
+          title: apartmentForm.name,
+          apartment_number: apartmentForm.number,
+          description: apartmentForm.description || null,
+          base_address: apartmentForm.address || null,
+          wifi_password: apartmentForm.wifi_password || null,
+          code_building: apartmentForm.entrance_code || null,
+          code_lock: apartmentForm.lock_code || null,
+        }));
         toast.success('Апартамент обновлен');
       } else {
-        // Создание нового апартамента
-        const { error } = await supabase
-          .from('apartments')
-          .insert({
-            name: apartmentForm.name,
-            number: apartmentForm.number,
-            description: apartmentForm.description || null,
-            address: apartmentForm.address || null,
-            wifi_password: apartmentForm.wifi_password || null,
-            entrance_code: apartmentForm.entrance_code || null,
-            lock_code: apartmentForm.lock_code || null
-          });
-
-        if (error) {
-          toast.error('Ошибка создания апартамента');
-          return;
-        }
+        await directus.request(createItem('apartments', {
+          title: apartmentForm.name,
+          apartment_number: apartmentForm.number,
+          description: apartmentForm.description || null,
+          base_address: apartmentForm.address || null,
+          wifi_password: apartmentForm.wifi_password || null,
+          code_building: apartmentForm.entrance_code || null,
+          code_lock: apartmentForm.lock_code || null,
+        }));
         toast.success('Апартамент создан');
       }
 
@@ -175,27 +159,10 @@ const ApartmentsManager = () => {
 
     try {
       // Сначала удаляем связанных гостей
-      await supabase
-        .from('guests')
-        .delete()
-        .eq('apartment_id', apartmentId);
+      // В Directus при удалении апартамента, удаление броней зависит от связей/flows.
+      // Здесь удаляем сам апартамент, брони можно чистить отдельным процессом.
 
-      // Удаляем медиафайлы
-      await supabase
-        .from('media_files')
-        .delete()
-        .eq('apartment_id', apartmentId);
-
-      // Затем удаляем сам апартамент
-      const { error } = await supabase
-        .from('apartments')
-        .delete()
-        .eq('id', apartmentId);
-
-      if (error) {
-        toast.error('Ошибка удаления апартамента');
-        return;
-      }
+      await directus.request(deleteItem('apartments', apartmentId));
 
       toast.success('Апартамент удален');
       await loadApartments();
