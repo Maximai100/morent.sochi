@@ -8,20 +8,32 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MediaUpload } from "@/components/MediaUpload";
 import { useFormValidation, validationRules } from "@/components/FormValidation";
-import { Copy, Share, Settings, Upload, AlertCircle, ArrowLeft } from "lucide-react";
+import { Copy, Share, Settings, Upload, AlertCircle, ArrowLeft, ExternalLink, Edit, Trash2, Plus } from "lucide-react";
 import { directus, ApartmentRecord, BookingRecord } from "@/integrations/directus/client";
-import { readItems, createItem, updateItem } from '@directus/sdk';
+import { readItems, createItem, updateItem, deleteItem } from '@directus/sdk';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const ManagerPanel = () => {
   const { toast } = useToast();
-  const [apartments, setApartments] = useState<Array<{ id: string; name: string; number: string; entrance_code: string | null; lock_code: string | null; wifi_password: string | null }>>([]);
+  const [apartments, setApartments] = useState<Array<{ id: string; name: string; number: string; entrance_code: string | null; lock_code: string | null; wifi_password: string | null; address?: string | null; description?: string | null }>>([]);
   const [formData, setFormData] = useState({
     apartmentId: '',
     checkIn: '',
     checkOut: '',
     electronicLockCode: '',
     guestName: ''
+  });
+
+  const [showApartmentForm, setShowApartmentForm] = useState(false);
+  const [selectedApartment, setSelectedApartment] = useState<null | { id?: string }>(null);
+  const [apartmentForm, setApartmentForm] = useState({
+    name: '',
+    number: '',
+    description: '',
+    address: '',
+    wifi_password: '',
+    entrance_code: '',
+    lock_code: ''
   });
 
   useEffect(() => {
@@ -34,6 +46,8 @@ const ManagerPanel = () => {
         entrance_code: a.code_building,
         lock_code: a.code_lock,
         wifi_password: a.wifi_password,
+        address: a.base_address || null,
+        description: a.description || null,
       }));
       setApartments(mapped);
     };
@@ -111,6 +125,81 @@ const ManagerPanel = () => {
     }
   };
 
+  const saveApartment = async () => {
+    if (!apartmentForm.name || !apartmentForm.number) {
+      toast({ title: 'Заполните название и номер', variant: 'destructive' });
+      return;
+    }
+    try {
+      if (selectedApartment?.id) {
+        await directus.request(updateItem('apartments', selectedApartment.id, {
+          title: apartmentForm.name,
+          apartment_number: apartmentForm.number,
+          description: apartmentForm.description || null,
+          base_address: apartmentForm.address || null,
+          wifi_password: apartmentForm.wifi_password || null,
+          code_building: apartmentForm.entrance_code || null,
+          code_lock: apartmentForm.lock_code || null,
+        }));
+        toast({ title: 'Апартамент обновлён' });
+      } else {
+        await directus.request(createItem('apartments', {
+          title: apartmentForm.name,
+          apartment_number: apartmentForm.number,
+          description: apartmentForm.description || null,
+          base_address: apartmentForm.address || null,
+          wifi_password: apartmentForm.wifi_password || null,
+          code_building: apartmentForm.entrance_code || null,
+          code_lock: apartmentForm.lock_code || null,
+        }));
+        toast({ title: 'Апартамент создан' });
+      }
+      // reload and reset
+      const items = await directus.request(readItems<ApartmentRecord>('apartments', { sort: ['-date_created'] }));
+      const mapped = (items || []).map(a => ({
+        id: a.id,
+        name: a.title || '',
+        number: a.apartment_number || '',
+        entrance_code: a.code_building,
+        lock_code: a.code_lock,
+        wifi_password: a.wifi_password,
+        address: a.base_address || null,
+        description: a.description || null,
+      }));
+      setApartments(mapped);
+      setShowApartmentForm(false);
+      setSelectedApartment(null);
+      setApartmentForm({ name: '', number: '', description: '', address: '', wifi_password: '', entrance_code: '', lock_code: '' });
+    } catch (e) {
+      toast({ title: 'Ошибка сохранения', variant: 'destructive' });
+    }
+  };
+
+  const editApartment = (a: { id: string; name: string; number: string; description: string | null; address: string | null; wifi_password: string | null; entrance_code: string | null; lock_code: string | null; }) => {
+    setSelectedApartment({ id: a.id });
+    setApartmentForm({
+      name: a.name || '',
+      number: a.number || '',
+      description: a.description || '',
+      address: a.address || '',
+      wifi_password: a.wifi_password || '',
+      entrance_code: a.entrance_code || '',
+      lock_code: a.lock_code || '',
+    });
+    setShowApartmentForm(true);
+  };
+
+  const removeApartment = async (id: string) => {
+    if (!confirm('Удалить апартамент?')) return;
+    try {
+      await directus.request(deleteItem('apartments', id));
+      setApartments(prev => prev.filter(x => x.id !== id));
+      toast({ title: 'Апартамент удалён' });
+    } catch (e) {
+      toast({ title: 'Ошибка удаления', variant: 'destructive' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-wave p-4">
       <div className="max-w-6xl mx-auto">
@@ -131,7 +220,7 @@ const ManagerPanel = () => {
           </div>
 
           <Tabs defaultValue="guest-data" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="guest-data" className="flex items-center gap-2">
                 <Settings className="w-4 h-4" />
                 Данные гостя
@@ -139,6 +228,10 @@ const ManagerPanel = () => {
               <TabsTrigger value="media-upload" className="flex items-center gap-2">
                 <Upload className="w-4 h-4" />
                 Медиафайлы
+              </TabsTrigger>
+              <TabsTrigger value="apartments" className="flex items-center gap-2">
+                <ExternalLink className="w-4 h-4" />
+                Апартаменты
               </TabsTrigger>
             </TabsList>
 
@@ -332,6 +425,102 @@ const ManagerPanel = () => {
                   title="Общая информация" 
                 />
               </div>
+            </TabsContent>
+
+            <TabsContent value="apartments" className="space-y-6 mt-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold font-playfair text-primary uppercase">Карточки апартаментов</h2>
+                <Button
+                  onClick={() => {
+                    setSelectedApartment(null);
+                    setApartmentForm({ name: '', number: '', description: '', address: '', wifi_password: '', entrance_code: '', lock_code: '' });
+                    setShowApartmentForm(true);
+                  }}
+                  className="touch-target"
+                  variant="default"
+                >
+                  <Plus className="w-4 h-4 mr-2" /> Добавить апартамент
+                </Button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {apartments.map((a) => (
+                  <Card key={a.id} className="hover-lift">
+                    <div className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="text-lg font-semibold">{a.name}</p>
+                          <p className="text-sm text-muted-foreground">Номер: {a.number}</p>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="sm" onClick={() => editApartment(a)}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => removeApartment(a.id)}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="mt-4 grid grid-cols-1 gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => (window.location.href = `/apartment/${a.id}/manage`)}
+                        >
+                          <ExternalLink className="w-4 h-4 mr-2" /> Управление гостями
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => (window.location.href = `/apartment/${a.id}`)}
+                        >
+                          Открыть страницу гостя
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+              {showApartmentForm && (
+                <Card className="mt-4">
+                  <div className="p-4 space-y-4">
+                    <h3 className="text-lg font-semibold">{selectedApartment?.id ? 'Редактировать апартамент' : 'Новый апартамент'}</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label>Название</Label>
+                        <Input value={apartmentForm.name} onChange={(e) => setApartmentForm({ ...apartmentForm, name: e.target.value })} placeholder="Апартаменты у моря" />
+                      </div>
+                      <div>
+                        <Label>Номер</Label>
+                        <Input value={apartmentForm.number} onChange={(e) => setApartmentForm({ ...apartmentForm, number: e.target.value })} placeholder="169" />
+                      </div>
+                      <div className="md:col-span-2">
+                        <Label>Описание</Label>
+                        <Textarea value={apartmentForm.description} onChange={(e) => setApartmentForm({ ...apartmentForm, description: e.target.value })} />
+                      </div>
+                      <div className="md:col-span-2">
+                        <Label>Адрес</Label>
+                        <Input value={apartmentForm.address} onChange={(e) => setApartmentForm({ ...apartmentForm, address: e.target.value })} placeholder="Нагорный тупик 13" />
+                      </div>
+                      <div>
+                        <Label>Wi-Fi пароль</Label>
+                        <Input value={apartmentForm.wifi_password} onChange={(e) => setApartmentForm({ ...apartmentForm, wifi_password: e.target.value })} placeholder="логин/пароль" />
+                      </div>
+                      <div>
+                        <Label>Код подъезда</Label>
+                        <Input value={apartmentForm.entrance_code} onChange={(e) => setApartmentForm({ ...apartmentForm, entrance_code: e.target.value })} placeholder="#2020" />
+                      </div>
+                      <div>
+                        <Label>Код замка</Label>
+                        <Input value={apartmentForm.lock_code} onChange={(e) => setApartmentForm({ ...apartmentForm, lock_code: e.target.value })} placeholder="1111" />
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button onClick={saveApartment} className="flex-1">{selectedApartment?.id ? 'Обновить' : 'Создать'}</Button>
+                      <Button variant="outline" className="flex-1" onClick={() => setShowApartmentForm(false)}>Отмена</Button>
+                    </div>
+                  </div>
+                </Card>
+              )}
             </TabsContent>
           </Tabs>
         </Card>
