@@ -21,6 +21,7 @@ interface MediaFileUI {
   url: string;
   file_type: 'image' | 'video';
   description: string;
+  mime?: string;
 }
 
 interface MediaDisplayProps {
@@ -50,29 +51,22 @@ export const MediaDisplay = ({ apartmentId, category, useApartmentFields, fallba
         const videoIds = [...toIds(item?.video_entrance), ...toIds(item?.video_lock)];
         if (photoIds.length) {
           const list = await directus.request(readFiles({ filter: { id: { _in: photoIds } }, limit: -1 }));
-          setPhotos(list.map((f: any) => ({ id: f.id, filename: f.filename_download, url: `${DIRECTUS_URL}/assets/${f.id}`, file_type: f.type?.startsWith('video/') ? 'video' : 'image', description: f.description || f.filename_download })));
+          setPhotos(list.map((f: any) => ({ id: f.id, filename: f.filename_download, url: `${DIRECTUS_URL}/assets/${f.id}`, file_type: f.type?.startsWith('video/') ? 'video' : 'image', description: f.description || f.filename_download, mime: f.type })));
         } else {
           setPhotos([]);
         }
         if (videoIds.length) {
           const list = await directus.request(readFiles({ filter: { id: { _in: videoIds } }, limit: -1 }));
-          setVideos(list.map((f: any) => ({ id: f.id, filename: f.filename_download, url: `${DIRECTUS_URL}/assets/${f.id}`, file_type: f.type?.startsWith('video/') ? 'video' : 'image', description: f.description || f.filename_download })));
+          setVideos(list.map((f: any) => ({ id: f.id, filename: f.filename_download, url: `${DIRECTUS_URL}/assets/${f.id}`, file_type: f.type?.startsWith('video/') ? 'video' : 'image', description: f.description || f.filename_download, mime: f.type })));
         } else {
           setVideos([]);
         }
+        // If nothing linked in fields, fallback to category-based lookup
+        if (photoIds.length === 0 && videoIds.length === 0) {
+          await loadByCategory();
+        }
       } else {
-        const photoCategory = category ? `${category}-photos` : `apartment-${apartmentId}-photos`;
-        const videoCategory = category ? `${category}-videos` : `apartment-${apartmentId}-videos`;
-        const [photoFiles, videoFiles] = await Promise.all([
-          directus.request(readFiles({ filter: { title: { _eq: photoCategory } }, sort: ['-date_created'] })),
-          directus.request(readFiles({ filter: { title: { _eq: videoCategory } }, sort: ['-date_created'] })),
-        ]);
-        if (photoFiles) {
-          setPhotos(photoFiles.map((f: any) => ({ id: f.id, filename: f.filename_download, url: `${DIRECTUS_URL}/assets/${f.id}`, file_type: f.type?.startsWith('video/') ? 'video' : 'image', description: f.description || f.filename_download })));
-        }
-        if (videoFiles) {
-          setVideos(videoFiles.map((f: any) => ({ id: f.id, filename: f.filename_download, url: `${DIRECTUS_URL}/assets/${f.id}`, file_type: f.type?.startsWith('video/') ? 'video' : 'image', description: f.description || f.filename_download })));
-        }
+        await loadByCategory();
       }
     } catch (error: any) {
       console.error('Error loading media:', error);
@@ -84,8 +78,29 @@ export const MediaDisplay = ({ apartmentId, category, useApartmentFields, fallba
       if (cors) {
         console.error('CORS appears to be misconfigured. Allow http://localhost:8080 in Directus CORS settings.');
       }
+      // On error with fields, also try category fallback
+      await loadByCategory();
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadByCategory = async () => {
+    try {
+      const photoCategory = category ? `${category}-photos` : `apartment-${apartmentId}-photos`;
+      const videoCategory = category ? `${category}-videos` : `apartment-${apartmentId}-videos`;
+      const [photoFiles, videoFiles] = await Promise.all([
+        directus.request(readFiles({ filter: { title: { _eq: photoCategory } }, sort: ['-date_created'] })),
+        directus.request(readFiles({ filter: { title: { _eq: videoCategory } }, sort: ['-date_created'] })),
+      ]);
+      if (photoFiles) {
+        setPhotos(photoFiles.map((f: any) => ({ id: f.id, filename: f.filename_download, url: `${DIRECTUS_URL}/assets/${f.id}`, file_type: f.type?.startsWith('video/') ? 'video' : 'image', description: f.description || f.filename_download, mime: f.type })));
+      }
+      if (videoFiles) {
+        setVideos(videoFiles.map((f: any) => ({ id: f.id, filename: f.filename_download, url: `${DIRECTUS_URL}/assets/${f.id}`, file_type: f.type?.startsWith('video/') ? 'video' : 'image', description: f.description || f.filename_download, mime: f.type })));
+      }
+    } catch (e) {
+      // ignore
     }
   };
 
@@ -162,8 +177,10 @@ export const MediaDisplay = ({ apartmentId, category, useApartmentFields, fallba
                   className="w-full h-64 object-cover"
                   preload="metadata"
                 >
+                  {/* Try provided mime; fallback to mp4; also add direct URL fallback for some browsers */}
+                  {video.mime ? <source src={video.url} type={video.mime} /> : null}
                   <source src={video.url} type="video/mp4" />
-                  Ваш браузер не поддерживает воспроизведение видео.
+                  <a href={video.url} target="_blank" rel="noreferrer" className="text-sm text-muted-foreground underline">Открыть видео отдельной ссылкой</a>
                 </video>
               </div>
             ))}

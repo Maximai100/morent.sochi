@@ -35,6 +35,12 @@ export const MediaUpload = ({ category, title, onUploadSuccess, apartmentId, dir
   const [description, setDescription] = useState("");
   const MAX_FILE_MB = Number(import.meta.env.VITE_UPLOAD_LIMIT_MB || 50);
 
+  const deriveCategory = (): string | undefined => {
+    if (category) return category;
+    if (!apartmentId) return undefined;
+    return directusField === 'photos' ? `apartment-${apartmentId}-photos` : `apartment-${apartmentId}-videos`;
+  };
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = event.target.files;
     if (!fileList || fileList.length === 0) return;
@@ -55,9 +61,7 @@ export const MediaUpload = ({ category, title, onUploadSuccess, apartmentId, dir
     try {
       const uploadedIds: string[] = [];
       // Derive a category title for fallback-based display
-      const derivedCategory = category || (apartmentId
-        ? (directusField === 'photos' ? `apartment-${apartmentId}-photos` : `apartment-${apartmentId}-videos`)
-        : undefined);
+      const derivedCategory = deriveCategory();
 
       for (const file of Array.from(fileList)) {
         const form = new FormData();
@@ -145,24 +149,23 @@ export const MediaUpload = ({ category, title, onUploadSuccess, apartmentId, dir
         const item: any = await (directus as any).request(readItem('apartments', apartmentId, { fields: ['id', directusField] }));
         const value = item?.[directusField];
         const ids: string[] = Array.isArray(value) ? value.map((v: any) => (typeof v === 'string' ? v : v.id)) : (value ? [ (typeof value === 'string' ? value : value.id) ] : []);
-        if (ids.length === 0) {
-          setFiles([]);
+        if (ids.length > 0) {
+          const list = await directus.request(readFiles({ filter: { id: { _in: ids } }, limit: -1 }));
+          const mapped: MediaFileUI[] = (list || []).map((f: any) => ({
+            id: f.id,
+            filename: f.filename_download,
+            url: `${DIRECTUS_URL}/assets/${f.id}`,
+            file_type: f.type?.startsWith('video/') ? 'video' : 'image',
+            description: f.description || f.filename_download,
+          }));
+          setFiles(mapped);
           return;
         }
-        const list = await directus.request(readFiles({ filter: { id: { _in: ids } }, limit: -1 }));
-        const mapped: MediaFileUI[] = (list || []).map((f: any) => ({
-          id: f.id,
-          filename: f.filename_download,
-          url: `${DIRECTUS_URL}/assets/${f.id}`,
-          file_type: f.type?.startsWith('video/') ? 'video' : 'image',
-          description: f.description || f.filename_download,
-        }));
-        setFiles(mapped);
-        return;
       }
 
-      if (category) {
-        const list = await directus.request(readFiles({ filter: { title: { _eq: category } }, sort: ['-date_created'] }));
+      const cat = deriveCategory();
+      if (cat) {
+        const list = await directus.request(readFiles({ filter: { title: { _eq: cat } }, sort: ['-date_created'] }));
         const mapped: MediaFileUI[] = (list || []).map((f: any) => ({
           id: f.id,
           filename: f.filename_download,
@@ -223,7 +226,7 @@ export const MediaUpload = ({ category, title, onUploadSuccess, apartmentId, dir
           <Input
             id={`file-${category}`}
             type="file"
-            accept="image/*,video/*"
+            accept={directusField === 'photos' ? 'image/*' : 'video/*'}
             multiple
             onChange={handleFileUpload}
             disabled={uploading}
