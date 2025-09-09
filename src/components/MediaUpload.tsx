@@ -54,10 +54,15 @@ export const MediaUpload = ({ category, title, onUploadSuccess, apartmentId, dir
 
     try {
       const uploadedIds: string[] = [];
+      // Derive a category title for fallback-based display
+      const derivedCategory = category || (apartmentId
+        ? (directusField === 'photos' ? `apartment-${apartmentId}-photos` : `apartment-${apartmentId}-videos`)
+        : undefined);
+
       for (const file of Array.from(fileList)) {
         const form = new FormData();
         form.append('file', file);
-        if (category) form.append('title', category);
+        if (derivedCategory) form.append('title', derivedCategory);
         if (description) form.append('description', description);
 
         const res: any = await directus.request(uploadFiles(form));
@@ -66,15 +71,45 @@ export const MediaUpload = ({ category, title, onUploadSuccess, apartmentId, dir
       }
 
       if (apartmentId && directusField && uploadedIds.length) {
-        const { updateItem, readItem } = await import('@directus/sdk');
-        if (multiple) {
-          const current: any = await (directus as any).request(readItem('apartments', apartmentId, { fields: [directusField] }));
-          const existing = current?.[directusField] || [];
-          const existingIds = Array.isArray(existing) ? existing.map((v: any) => (typeof v === 'string' ? v : v.id)) : [];
-          const next = Array.from(new Set([...existingIds, ...uploadedIds]));
-          await (directus as any).request(updateItem('apartments', apartmentId, { [directusField]: next }));
-        } else {
-          await (directus as any).request(updateItem('apartments', apartmentId, { [directusField]: uploadedIds[uploadedIds.length - 1] }));
+        try {
+          const { updateItem, readItem, readFiles } = await import('@directus/sdk');
+          // Merge with existing
+          let targetIds = uploadedIds.slice();
+          if (multiple) {
+            const current: any = await (directus as any).request(readItem('apartments', apartmentId, { fields: [directusField] }));
+            const existing = current?.[directusField] || [];
+            const existingIds = Array.isArray(existing) ? existing.map((v: any) => (typeof v === 'string' ? v : v.id)) : [];
+            targetIds = Array.from(new Set([...existingIds, ...uploadedIds]));
+          }
+
+          // Try several shapes to satisfy different Directus field configs
+          const filesMeta: any[] = await directus.request(readFiles({ filter: { id: { _in: targetIds } }, limit: -1 }));
+          const byId = new Map<string, any>(filesMeta.map((f: any) => [f.id, f]));
+
+          const singleId = targetIds[targetIds.length - 1];
+          const arrayOfIds = targetIds;
+          const arrayOfIdObjects = targetIds.map((id) => ({ id }));
+          const arrayWithType = targetIds.map((id) => ({ id, type: byId.get(id)?.type }));
+
+          const variants: Array<any> = multiple
+            ? [arrayOfIds, arrayOfIdObjects, arrayWithType]
+            : [singleId, { id: singleId }, { id: singleId, type: byId.get(singleId)?.type }];
+
+          let linked = false;
+          let lastErr: any;
+          for (const value of variants) {
+            try {
+              await (directus as any).request(updateItem('apartments', apartmentId, { [directusField]: value } as any));
+              linked = true;
+              break;
+            } catch (e) {
+              lastErr = e;
+            }
+          }
+          if (!linked) throw lastErr;
+        } catch (linkErr) {
+          console.warn('Linking uploaded files to apartment failed. Falling back to category display.', linkErr);
+          // Continue: files are uploaded and will be visible by category
         }
       }
 
