@@ -140,15 +140,15 @@ const ManagerPanel = () => {
     }
 
     try {
-      const toDirectusDate = (value: string) => {
-        if (!value) return null as string | null;
+      const toDirectusDate = (value: string): string | undefined => {
+        if (!value) return undefined;
         try {
           const parsed = parse(value, 'dd.MM.yyyy', new Date());
-          if (isNaN(parsed.getTime())) return null;
+          if (isNaN(parsed.getTime())) return undefined;
           // Send ISO date (YYYY-MM-DD) to Directus
           return format(parsed, 'yyyy-MM-dd');
         } catch {
-          return null;
+          return undefined;
         }
       };
 
@@ -166,7 +166,9 @@ const ManagerPanel = () => {
       let lastError: any;
       for (const payload of variants) {
         try {
-          created = await directus.request(createItem('bookings', payload));
+          // strip undefined/null values to avoid validation issues
+          const compact = Object.fromEntries(Object.entries(payload).filter(([, v]) => v !== undefined && v !== null && v !== ''));
+          created = await directus.request(createItem('bookings', compact));
           break;
         } catch (err) {
           lastError = err;
