@@ -74,6 +74,11 @@ const ManagerPanel = () => {
           address: a.base_address || null,
           description: a.description || null,
         }));
+        const parseNum = (s?: string | null) => {
+          const n = parseInt(String(s || '').replace(/[^0-9]/g, ''), 10);
+          return Number.isFinite(n) ? n : Number.MAX_SAFE_INTEGER;
+        };
+        mapped.sort((a, b) => parseNum(a.number) - parseNum(b.number));
         setApartments(mapped);
         const params = new URLSearchParams(window.location.search);
         if (params.get('tab') === 'apartments') {
@@ -370,6 +375,11 @@ const ManagerPanel = () => {
         address: a.base_address || null,
         description: a.description || null,
       }));
+      const parseNum = (s?: string | null) => {
+        const n = parseInt(String(s || '').replace(/[^0-9]/g, ''), 10);
+        return Number.isFinite(n) ? n : Number.MAX_SAFE_INTEGER;
+      };
+      mapped.sort((a, b) => parseNum(a.number) - parseNum(b.number));
       setApartments(mapped);
       setShowApartmentForm(false);
       setSelectedApartment(null);
@@ -409,7 +419,15 @@ const ManagerPanel = () => {
     if (!confirm('Удалить апартамент?')) return;
     try {
       await directus.request(deleteItem('apartments', id));
-      setApartments(prev => prev.filter(x => x.id !== id));
+      setApartments(prev => {
+        const parseNum = (s?: string | null) => {
+          const n = parseInt(String(s || '').replace(/[^0-9]/g, ''), 10);
+          return Number.isFinite(n) ? n : Number.MAX_SAFE_INTEGER;
+        };
+        const next = prev.filter(x => x.id !== id);
+        next.sort((a, b) => parseNum(a.number) - parseNum(b.number));
+        return next;
+      });
       toast({ title: 'Апартамент удалён' });
     } catch (e) {
       toast({ title: 'Ошибка удаления', variant: 'destructive' });
