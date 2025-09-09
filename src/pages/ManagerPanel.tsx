@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const ManagerPanel = () => {
@@ -140,11 +140,23 @@ const ManagerPanel = () => {
     }
 
     try {
+      const toDirectusDate = (value: string) => {
+        if (!value) return null as string | null;
+        try {
+          const parsed = parse(value, 'dd.MM.yyyy', new Date());
+          if (isNaN(parsed.getTime())) return null;
+          // Send ISO date (YYYY-MM-DD) to Directus
+          return format(parsed, 'yyyy-MM-dd');
+        } catch {
+          return null;
+        }
+      };
+
       await directus.request(createItem('bookings', {
         apartment_id: formData.apartmentId,
         guest_name: formData.guestName,
-        checkin_date: formData.checkIn || null,
-        checkout_date: formData.checkOut || null,
+        checkin_date: toDirectusDate(formData.checkIn),
+        checkout_date: toDirectusDate(formData.checkOut),
         // lock_code поле может отсутствовать в вашей коллекции; не отправляем, чтобы избежать ошибки
       }));
 
@@ -152,8 +164,11 @@ const ManagerPanel = () => {
       await navigator.clipboard.writeText(link);
       toast({ title: "Бронирование создано", description: "Ссылка скопирована в буфер обмена" });
     } catch (e: any) {
+      // Try to surface Directus error details for easier debugging
+      const details = e?.errors?.[0];
+      const message = details?.message || e?.message || 'Не удалось создать бронирование';
       console.error('Create booking error:', e);
-      toast({ title: "Ошибка", description: "Не удалось создать бронирование (проверьте поля коллекции)", variant: "destructive" });
+      toast({ title: "Ошибка", description: message, variant: "destructive" });
     }
   };
 
