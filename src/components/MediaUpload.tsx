@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { directus } from "@/integrations/directus/client";
+import { directus, DIRECTUS_URL } from "@/integrations/directus/client";
 import { uploadFiles, readFiles, deleteFile } from '@directus/sdk';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,9 +10,14 @@ import { useToast } from "@/hooks/use-toast";
 import { Upload, X, Image, Video } from "lucide-react";
 
 interface MediaUploadProps {
-  category: string;
   title: string;
   onUploadSuccess?: () => void;
+  // Привязка к апартаменту: сохранение id файлов в поле коллекции apartments
+  apartmentId?: string;
+  directusField?: 'photos' | 'video_entrance' | 'video_lock';
+  multiple?: boolean;
+  // Резервный режим по категории (если нужно)
+  category?: string;
 }
 
 interface MediaFileUI {
@@ -23,12 +28,11 @@ interface MediaFileUI {
   description: string;
 }
 
-export const MediaUpload = ({ category, title, onUploadSuccess }: MediaUploadProps) => {
+export const MediaUpload = ({ category, title, onUploadSuccess, apartmentId, directusField, multiple = false }: MediaUploadProps) => {
   const { toast } = useToast();
   const [files, setFiles] = useState<MediaFileUI[]>([]);
   const [uploading, setUploading] = useState(false);
   const [description, setDescription] = useState("");
-  const DIRECTUS_URL = import.meta.env.VITE_DIRECTUS_URL || 'https://1.cycloscope.online';
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = event.target.files;
@@ -37,13 +41,29 @@ export const MediaUpload = ({ category, title, onUploadSuccess }: MediaUploadPro
     setUploading(true);
 
     try {
+      const uploadedIds: string[] = [];
       for (const file of Array.from(fileList)) {
         const form = new FormData();
         form.append('file', file);
-        form.append('title', category);
+        if (category) form.append('title', category);
         if (description) form.append('description', description);
 
-        await directus.request(uploadFiles(form));
+        const res: any = await directus.request(uploadFiles(form));
+        if (Array.isArray(res)) uploadedIds.push(...res.map((r: any) => r.id));
+        else if (res?.id) uploadedIds.push(res.id);
+      }
+
+      if (apartmentId && directusField && uploadedIds.length) {
+        const { updateItem, readItem } = await import('@directus/sdk');
+        if (multiple) {
+          const current: any = await (directus as any).request(readItem('apartments', apartmentId, { fields: [directusField] }));
+          const existing = current?.[directusField] || [];
+          const existingIds = Array.isArray(existing) ? existing.map((v: any) => (typeof v === 'string' ? v : v.id)) : [];
+          const next = Array.from(new Set([...existingIds, ...uploadedIds]));
+          await (directus as any).request(updateItem('apartments', apartmentId, { [directusField]: next }));
+        } else {
+          await (directus as any).request(updateItem('apartments', apartmentId, { [directusField]: uploadedIds[uploadedIds.length - 1] }));
+        }
       }
 
       toast({
@@ -68,18 +88,38 @@ export const MediaUpload = ({ category, title, onUploadSuccess }: MediaUploadPro
 
   const loadFiles = async () => {
     try {
-      const list = await directus.request(readFiles({
-        filter: { title: { _eq: category } },
-        sort: ['-date_created']
-      }));
-      const mapped: MediaFileUI[] = (list || []).map((f: any) => ({
-        id: f.id,
-        filename: f.filename_download,
-        url: `${DIRECTUS_URL}/assets/${f.id}`,
-        file_type: f.type?.startsWith('video/') ? 'video' : 'image',
-        description: f.description || f.filename_download,
-      }));
-      setFiles(mapped);
+      if (apartmentId && directusField) {
+        const { readItem } = await import('@directus/sdk');
+        const item: any = await (directus as any).request(readItem('apartments', apartmentId, { fields: ['id', directusField] }));
+        const value = item?.[directusField];
+        const ids: string[] = Array.isArray(value) ? value.map((v: any) => (typeof v === 'string' ? v : v.id)) : (value ? [ (typeof value === 'string' ? value : value.id) ] : []);
+        if (ids.length === 0) {
+          setFiles([]);
+          return;
+        }
+        const list = await directus.request(readFiles({ filter: { id: { _in: ids } }, limit: -1 }));
+        const mapped: MediaFileUI[] = (list || []).map((f: any) => ({
+          id: f.id,
+          filename: f.filename_download,
+          url: `${DIRECTUS_URL}/assets/${f.id}`,
+          file_type: f.type?.startsWith('video/') ? 'video' : 'image',
+          description: f.description || f.filename_download,
+        }));
+        setFiles(mapped);
+        return;
+      }
+
+      if (category) {
+        const list = await directus.request(readFiles({ filter: { title: { _eq: category } }, sort: ['-date_created'] }));
+        const mapped: MediaFileUI[] = (list || []).map((f: any) => ({
+          id: f.id,
+          filename: f.filename_download,
+          url: `${DIRECTUS_URL}/assets/${f.id}`,
+          file_type: f.type?.startsWith('video/') ? 'video' : 'image',
+          description: f.description || f.filename_download,
+        }));
+        setFiles(mapped);
+      }
     } catch (e) {
       // ignore
     }
@@ -87,6 +127,17 @@ export const MediaUpload = ({ category, title, onUploadSuccess }: MediaUploadPro
 
   const handleDeleteFile = async (fileId: string) => {
     try {
+      if (apartmentId && directusField) {
+        const { updateItem, readItem } = await import('@directus/sdk');
+        const current: any = await (directus as any).request(readItem('apartments', apartmentId, { fields: [directusField] }));
+        const value = current?.[directusField];
+        if (Array.isArray(value)) {
+          const next = value.map((v: any) => (typeof v === 'string' ? v : v.id)).filter((id: string) => id !== fileId);
+          await (directus as any).request(updateItem('apartments', apartmentId, { [directusField]: next }));
+        } else if (value && ((typeof value === 'string' ? value : value.id) === fileId)) {
+          await (directus as any).request(updateItem('apartments', apartmentId, { [directusField]: null }));
+        }
+      }
       await directus.request(deleteFile(fileId));
       toast({ title: "Файл удален", description: "Файл успешно удален" });
       loadFiles();
@@ -97,7 +148,7 @@ export const MediaUpload = ({ category, title, onUploadSuccess }: MediaUploadPro
 
   useEffect(() => {
     loadFiles();
-  }, [category]);
+  }, [category, apartmentId, directusField]);
 
   return (
     <Card className="p-6">

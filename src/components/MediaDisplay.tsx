@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { directus } from "@/integrations/directus/client";
+import { directus, DIRECTUS_URL } from "@/integrations/directus/client";
 import { readFiles } from '@directus/sdk';
 import { 
   Carousel, 
@@ -25,48 +25,54 @@ interface MediaFileUI {
 
 interface MediaDisplayProps {
   apartmentId?: string;
+  useApartmentFields?: boolean;
   category?: string;
   fallbackText?: string;
   className?: string;
 }
 
-export const MediaDisplay = ({ apartmentId, category, fallbackText, className }: MediaDisplayProps) => {
+export const MediaDisplay = ({ apartmentId, category, useApartmentFields, fallbackText, className }: MediaDisplayProps) => {
   const [photos, setPhotos] = useState<MediaFileUI[]>([]);
   const [videos, setVideos] = useState<MediaFileUI[]>([]);
   const [loading, setLoading] = useState(true);
-  const DIRECTUS_URL = import.meta.env.VITE_DIRECTUS_URL || 'https://1.cycloscope.online';
 
   useEffect(() => {
     loadMedia();
-  }, [apartmentId, category]);
+  }, [apartmentId, category, useApartmentFields]);
 
   const loadMedia = async () => {
     try {
-      const photoCategory = category ? `${category}-photos` : `apartment-${apartmentId}-photos`;
-      const videoCategory = category ? `${category}-videos` : `apartment-${apartmentId}-videos`;
-      
-      const [photoFiles, videoFiles] = await Promise.all([
-        directus.request(readFiles({ filter: { title: { _eq: photoCategory } }, sort: ['-date_created'] })),
-        directus.request(readFiles({ filter: { title: { _eq: videoCategory } }, sort: ['-date_created'] })),
-      ]);
-
-      if (photoFiles) {
-        setPhotos(photoFiles.map((f: any) => ({
-          id: f.id,
-          filename: f.filename_download,
-          url: `${DIRECTUS_URL}/assets/${f.id}`,
-          file_type: f.type?.startsWith('video/') ? 'video' : 'image',
-          description: f.description || f.filename_download,
-        })));
-      }
-      if (videoFiles) {
-        setVideos(videoFiles.map((f: any) => ({
-          id: f.id,
-          filename: f.filename_download,
-          url: `${DIRECTUS_URL}/assets/${f.id}`,
-          file_type: f.type?.startsWith('video/') ? 'video' : 'image',
-          description: f.description || f.filename_download,
-        })));
+      if (useApartmentFields && apartmentId) {
+        const { readItem } = await import('@directus/sdk');
+        const item: any = await (directus as any).request(readItem('apartments', apartmentId, { fields: ['id', 'photos', 'video_entrance', 'video_lock'] }));
+        const toIds = (value: any) => Array.isArray(value) ? value.map((v: any) => (typeof v === 'string' ? v : v.id)) : (value ? [ (typeof value === 'string' ? value : value.id) ] : []);
+        const photoIds = toIds(item?.photos);
+        const videoIds = [...toIds(item?.video_entrance), ...toIds(item?.video_lock)];
+        if (photoIds.length) {
+          const list = await directus.request(readFiles({ filter: { id: { _in: photoIds } }, limit: -1 }));
+          setPhotos(list.map((f: any) => ({ id: f.id, filename: f.filename_download, url: `${DIRECTUS_URL}/assets/${f.id}`, file_type: f.type?.startsWith('video/') ? 'video' : 'image', description: f.description || f.filename_download })));
+        } else {
+          setPhotos([]);
+        }
+        if (videoIds.length) {
+          const list = await directus.request(readFiles({ filter: { id: { _in: videoIds } }, limit: -1 }));
+          setVideos(list.map((f: any) => ({ id: f.id, filename: f.filename_download, url: `${DIRECTUS_URL}/assets/${f.id}`, file_type: f.type?.startsWith('video/') ? 'video' : 'image', description: f.description || f.filename_download })));
+        } else {
+          setVideos([]);
+        }
+      } else {
+        const photoCategory = category ? `${category}-photos` : `apartment-${apartmentId}-photos`;
+        const videoCategory = category ? `${category}-videos` : `apartment-${apartmentId}-videos`;
+        const [photoFiles, videoFiles] = await Promise.all([
+          directus.request(readFiles({ filter: { title: { _eq: photoCategory } }, sort: ['-date_created'] })),
+          directus.request(readFiles({ filter: { title: { _eq: videoCategory } }, sort: ['-date_created'] })),
+        ]);
+        if (photoFiles) {
+          setPhotos(photoFiles.map((f: any) => ({ id: f.id, filename: f.filename_download, url: `${DIRECTUS_URL}/assets/${f.id}`, file_type: f.type?.startsWith('video/') ? 'video' : 'image', description: f.description || f.filename_download })));
+        }
+        if (videoFiles) {
+          setVideos(videoFiles.map((f: any) => ({ id: f.id, filename: f.filename_download, url: `${DIRECTUS_URL}/assets/${f.id}`, file_type: f.type?.startsWith('video/') ? 'video' : 'image', description: f.description || f.filename_download })));
+        }
       }
     } catch (error) {
       console.error('Error loading media:', error);

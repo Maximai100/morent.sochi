@@ -1,11 +1,21 @@
 import { createDirectus, rest, staticToken } from '@directus/sdk';
 
-const DIRECTUS_URL = (import.meta as any).env?.VITE_DIRECTUS_URL || (typeof window !== 'undefined' ? (window as any).__DIRECTUS_URL : undefined) || 'https://1.cycloscope.online';
-const DIRECTUS_STATIC_TOKEN = (import.meta as any).env?.VITE_DIRECTUS_STATIC_TOKEN || (typeof window !== 'undefined' ? (window as any).__DIRECTUS_TOKEN : undefined) || '-cMyVc4fp4kN79rCjGqGzFJYvKurLeGB';
+// Configuration: read from Vite env; optionally allow runtime overrides only in development
+const isProduction = import.meta.env.PROD;
+export const DIRECTUS_URL: string | undefined = (import.meta as any).env?.VITE_DIRECTUS_URL
+  || (!isProduction && typeof window !== 'undefined' ? (window as any).__DIRECTUS_URL : undefined);
+export const DIRECTUS_STATIC_TOKEN: string | undefined = (import.meta as any).env?.VITE_DIRECTUS_STATIC_TOKEN
+  || (!isProduction && typeof window !== 'undefined' ? (window as any).__DIRECTUS_TOKEN : undefined);
 
-export const directus = createDirectus(DIRECTUS_URL)
-  .with(staticToken(DIRECTUS_STATIC_TOKEN))
-  .with(rest());
+if (!DIRECTUS_URL) {
+  throw new Error('Directus URL is not configured. Set VITE_DIRECTUS_URL.');
+}
+
+let client = createDirectus(DIRECTUS_URL).with(rest());
+if (DIRECTUS_STATIC_TOKEN) {
+  client = client.with(staticToken(DIRECTUS_STATIC_TOKEN));
+}
+export const directus = client;
 
 export type ApartmentRecord = {
   id: string;

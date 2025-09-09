@@ -8,10 +8,15 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MediaUpload } from "@/components/MediaUpload";
 import { useFormValidation, validationRules } from "@/components/FormValidation";
-import { Copy, Share, Settings, Upload, AlertCircle, ArrowLeft, ExternalLink, Edit, Trash2, Plus } from "lucide-react";
-import { directus, ApartmentRecord, BookingRecord } from "@/integrations/directus/client";
-import { readItems, createItem, updateItem, deleteItem } from '@directus/sdk';
+import { Copy, Share, Settings, AlertCircle, ArrowLeft, ExternalLink, Edit, Trash2, Plus } from "lucide-react";
+import { directus, ApartmentRecord, BookingRecord, DIRECTUS_URL } from "@/integrations/directus/client";
+import { readItems, readItem, createItem, updateItem, deleteItem } from '@directus/sdk';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const ManagerPanel = () => {
   const { toast } = useToast();
@@ -23,6 +28,8 @@ const ManagerPanel = () => {
     electronicLockCode: '',
     guestName: ''
   });
+  const [checkInDate, setCheckInDate] = useState<Date | undefined>(undefined);
+  const [checkOutDate, setCheckOutDate] = useState<Date | undefined>(undefined);
 
   const [showApartmentForm, setShowApartmentForm] = useState(false);
   const [selectedApartment, setSelectedApartment] = useState<null | { id?: string }>(null);
@@ -33,11 +40,20 @@ const ManagerPanel = () => {
     address: '',
     wifi_password: '',
     entrance_code: '',
-    lock_code: ''
+    lock_code: '',
+    manager_name: '',
+    manager_phone: '',
+    manager_email: '',
+    faq_checkin: '',
+    faq_apartment: '',
+    faq_area: '',
+    map_embed_code: ''
   });
 
   useEffect(() => {
     const load = async () => {
+      // quick probe to see URL used (token is not logged)
+      console.debug('Directus URL:', DIRECTUS_URL);
       try {
         const items = await directus.request(readItems<ApartmentRecord>('apartments', {
           sort: ['-date_created'],
@@ -55,6 +71,14 @@ const ManagerPanel = () => {
           description: a.description || null,
         }));
         setApartments(mapped);
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('tab') === 'apartments') {
+          const editId = params.get('edit');
+          if (editId) {
+            const toEdit = mapped.find(a => a.id === editId);
+            if (toEdit) editApartment(toEdit);
+          }
+        }
       } catch (e) {
         console.error(e);
         toast({ title: 'Не удалось загрузить апартаменты из Directus', variant: 'destructive' });
@@ -116,21 +140,20 @@ const ManagerPanel = () => {
     }
 
     try {
-      const created = await directus.request(createItem('bookings', {
+      await directus.request(createItem('bookings', {
         apartment_id: formData.apartmentId,
         guest_name: formData.guestName,
         checkin_date: formData.checkIn || null,
         checkout_date: formData.checkOut || null,
-        lock_code: formData.electronicLockCode || null,
+        // lock_code поле может отсутствовать в вашей коллекции; не отправляем, чтобы избежать ошибки
       }));
 
       const link = generateGuestLink();
-      await directus.request(updateItem('bookings', (created as any).id, { guide_link: link } as any));
-
       await navigator.clipboard.writeText(link);
       toast({ title: "Бронирование создано", description: "Ссылка скопирована в буфер обмена" });
-    } catch (e) {
-      toast({ title: "Ошибка", description: "Не удалось создать бронирование", variant: "destructive" });
+    } catch (e: any) {
+      console.error('Create booking error:', e);
+      toast({ title: "Ошибка", description: "Не удалось создать бронирование (проверьте поля коллекции)", variant: "destructive" });
     }
   };
 
@@ -149,6 +172,13 @@ const ManagerPanel = () => {
           wifi_password: apartmentForm.wifi_password || null,
           code_building: apartmentForm.entrance_code || null,
           code_lock: apartmentForm.lock_code || null,
+          manager_name: apartmentForm.manager_name || null,
+          manager_phone: apartmentForm.manager_phone || null,
+          manager_email: apartmentForm.manager_email || null,
+          faq_checkin: apartmentForm.faq_checkin || null,
+          faq_apartment: apartmentForm.faq_apartment || null,
+          faq_area: apartmentForm.faq_area || null,
+          map_embed_code: apartmentForm.map_embed_code || null,
         }));
         toast({ title: 'Апартамент обновлён' });
       } else {
@@ -160,6 +190,13 @@ const ManagerPanel = () => {
           wifi_password: apartmentForm.wifi_password || null,
           code_building: apartmentForm.entrance_code || null,
           code_lock: apartmentForm.lock_code || null,
+          manager_name: apartmentForm.manager_name || null,
+          manager_phone: apartmentForm.manager_phone || null,
+          manager_email: apartmentForm.manager_email || null,
+          faq_checkin: apartmentForm.faq_checkin || null,
+          faq_apartment: apartmentForm.faq_apartment || null,
+          faq_area: apartmentForm.faq_area || null,
+          map_embed_code: apartmentForm.map_embed_code || null,
         }));
         toast({ title: 'Апартамент создан' });
       }
@@ -178,24 +215,36 @@ const ManagerPanel = () => {
       setApartments(mapped);
       setShowApartmentForm(false);
       setSelectedApartment(null);
-      setApartmentForm({ name: '', number: '', description: '', address: '', wifi_password: '', entrance_code: '', lock_code: '' });
+      setApartmentForm({ name: '', number: '', description: '', address: '', wifi_password: '', entrance_code: '', lock_code: '', manager_name: '', manager_phone: '', manager_email: '', faq_checkin: '', faq_apartment: '', faq_area: '', map_embed_code: '' });
     } catch (e) {
       toast({ title: 'Ошибка сохранения', variant: 'destructive' });
     }
   };
 
-  const editApartment = (a: { id: string; name: string; number: string; description: string | null; address: string | null; wifi_password: string | null; entrance_code: string | null; lock_code: string | null; }) => {
-    setSelectedApartment({ id: a.id });
-    setApartmentForm({
-      name: a.name || '',
-      number: a.number || '',
-      description: a.description || '',
-      address: a.address || '',
-      wifi_password: a.wifi_password || '',
-      entrance_code: a.entrance_code || '',
-      lock_code: a.lock_code || '',
-    });
-    setShowApartmentForm(true);
+  const editApartment = async (a: { id: string; name: string; number: string; description: string | null; address: string | null; wifi_password: string | null; entrance_code: string | null; lock_code: string | null; }) => {
+    try {
+      const full = await directus.request(readItem<ApartmentRecord>('apartments', a.id, { fields: ['*'] } as any));
+      setSelectedApartment({ id: a.id });
+      setApartmentForm({
+        name: full.title || '',
+        number: full.apartment_number || '',
+        description: full.description || '',
+        address: full.base_address || '',
+        wifi_password: full.wifi_password || '',
+        entrance_code: full.code_building || '',
+        lock_code: full.code_lock || '',
+        manager_name: full.manager_name || '',
+        manager_phone: full.manager_phone || '',
+        manager_email: full.manager_email || '',
+        faq_checkin: full.faq_checkin || '',
+        faq_apartment: full.faq_apartment || '',
+        faq_area: full.faq_area || '',
+        map_embed_code: full.map_embed_code || '',
+      });
+      setShowApartmentForm(true);
+    } catch (e) {
+      toast({ title: 'Не удалось загрузить данные апартамента', variant: 'destructive' });
+    }
   };
 
   const removeApartment = async (id: string) => {
@@ -229,14 +278,10 @@ const ManagerPanel = () => {
           </div>
 
           <Tabs defaultValue="guest-data" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="guest-data" className="flex items-center gap-2">
                 <Settings className="w-4 h-4" />
                 Данные гостя
-              </TabsTrigger>
-              <TabsTrigger value="media-upload" className="flex items-center gap-2">
-                <Upload className="w-4 h-4" />
-                Медиафайлы
               </TabsTrigger>
               <TabsTrigger value="apartments" className="flex items-center gap-2">
                 <ExternalLink className="w-4 h-4" />
@@ -286,14 +331,25 @@ const ManagerPanel = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="checkin">Дата заезда</Label>
-                        <Input
-                          id="checkin"
-                          value={formData.checkIn}
-                          onChange={(e) => updateFormData('checkIn', e.target.value)}
-                          placeholder="08.06.2025 в 15:00"
-                          className={errors.checkIn ? "border-destructive" : ""}
-                        />
+                        <Label>Дата заезда</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-full justify-start gap-2">
+                              <CalendarIcon className="w-4 h-4" />
+                              {checkInDate ? format(checkInDate, 'dd.MM.yyyy') : 'Выбрать дату'}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="p-0">
+                            <Calendar
+                              mode="single"
+                              selected={checkInDate}
+                              onSelect={(d) => {
+                                setCheckInDate(d);
+                                if (d) updateFormData('checkIn', format(d, 'dd.MM.yyyy'));
+                              }}
+                            />
+                          </PopoverContent>
+                        </Popover>
                         {errors.checkIn && (
                           <div className="flex items-center gap-1 text-destructive text-sm mt-1">
                             <AlertCircle className="w-4 h-4" />
@@ -302,14 +358,25 @@ const ManagerPanel = () => {
                         )}
                       </div>
                       <div>
-                        <Label htmlFor="checkout">Дата выезда</Label>
-                        <Input
-                          id="checkout"
-                          value={formData.checkOut}
-                          onChange={(e) => updateFormData('checkOut', e.target.value)}
-                          placeholder="09.06.2025 в 12:00"
-                          className={errors.checkOut ? "border-destructive" : ""}
-                        />
+                        <Label>Дата выезда</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-full justify-start gap-2">
+                              <CalendarIcon className="w-4 h-4" />
+                              {checkOutDate ? format(checkOutDate, 'dd.MM.yyyy') : 'Выбрать дату'}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="p-0">
+                            <Calendar
+                              mode="single"
+                              selected={checkOutDate}
+                              onSelect={(d) => {
+                                setCheckOutDate(d);
+                                if (d) updateFormData('checkOut', format(d, 'dd.MM.yyyy'));
+                              }}
+                            />
+                          </PopoverContent>
+                        </Popover>
                         {errors.checkOut && (
                           <div className="flex items-center gap-1 text-destructive text-sm mt-1">
                             <AlertCircle className="w-4 h-4" />
@@ -395,46 +462,7 @@ const ManagerPanel = () => {
               </div>
             </TabsContent>
 
-            <TabsContent value="media-upload" className="space-y-6 mt-6">
-              <div className="grid md:grid-cols-2 gap-6">
-                <MediaUpload 
-                  category="welcome_photos" 
-                  title="Фотографии приветствия"
-                />
-                <MediaUpload 
-                  category="entrance_videos" 
-                  title="Видео подъезда"
-                />
-                <MediaUpload 
-                  category="lock_videos" 
-                  title="Видео электронного замка"
-                />
-                <MediaUpload 
-                  category="trash_location" 
-                  title="Видео расположения мусорных баков" 
-                />
-                <MediaUpload 
-                  category="territory_description" 
-                  title="Описание территории" 
-                />
-                <MediaUpload 
-                  category="beach_directions" 
-                  title="Как дойти до пляжа" 
-                />
-                <MediaUpload 
-                  category="excursion_info" 
-                  title="Информация об экскурсиях" 
-                />
-                <MediaUpload 
-                  category="car_rental" 
-                  title="Аренда автомобилей" 
-                />
-                <MediaUpload 
-                  category="general_info" 
-                  title="Общая информация" 
-                />
-              </div>
-            </TabsContent>
+            
 
             <TabsContent value="apartments" className="space-y-6 mt-6">
               <div className="flex items-center justify-between">
@@ -457,8 +485,10 @@ const ManagerPanel = () => {
                     <div className="p-4">
                       <div className="flex items-start justify-between">
                         <div>
+                          <div className="inline-block px-2 py-1 rounded-md border-2 border-gold/60 bg-gold/10 text-gold font-bold tracking-wide text-base mb-1">
+                            № {a.number}
+                          </div>
                           <p className="text-lg font-semibold">{a.name}</p>
-                          <p className="text-sm text-muted-foreground">Номер: {a.number}</p>
                         </div>
                         <div className="flex gap-1">
                           <Button variant="ghost" size="sm" onClick={() => editApartment(a)}>
@@ -471,16 +501,9 @@ const ManagerPanel = () => {
                       </div>
                       <div className="mt-4 grid grid-cols-1 gap-2">
                         <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => (window.location.href = `/apartment/${a.id}/manage`)}
-                        >
-                          <ExternalLink className="w-4 h-4 mr-2" /> Управление гостями
-                        </Button>
-                        <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => (window.location.href = `/apartment/${a.id}`)}
+                          onClick={() => window.open(`/apartment/${a.id}`, '_blank')}
                         >
                           Открыть страницу гостя
                         </Button>
@@ -489,47 +512,114 @@ const ManagerPanel = () => {
                   </Card>
                 ))}
               </div>
-              {showApartmentForm && (
-                <Card className="mt-4">
-                  <div className="p-4 space-y-4">
-                    <h3 className="text-lg font-semibold">{selectedApartment?.id ? 'Редактировать апартамент' : 'Новый апартамент'}</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label>Название</Label>
-                        <Input value={apartmentForm.name} onChange={(e) => setApartmentForm({ ...apartmentForm, name: e.target.value })} placeholder="Апартаменты у моря" />
+              <Dialog open={showApartmentForm} onOpenChange={setShowApartmentForm}>
+                <DialogContent className="max-w-4xl">
+                  <DialogHeader>
+                    <DialogTitle>{selectedApartment?.id ? 'Редактировать апартамент' : 'Новый апартамент'}</DialogTitle>
+                  </DialogHeader>
+                  <Tabs defaultValue="main" className="w-full">
+                    <TabsList className="grid w-full grid-cols-3 mb-4">
+                      <TabsTrigger value="main">Основное</TabsTrigger>
+                      <TabsTrigger value="content">Контент</TabsTrigger>
+                      <TabsTrigger value="media">Медиа</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="main">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label>Название</Label>
+                          <Input value={apartmentForm.name} onChange={(e) => setApartmentForm({ ...apartmentForm, name: e.target.value })} placeholder="Апартаменты у моря" />
+                        </div>
+                        <div>
+                          <Label>Номер</Label>
+                          <Input value={apartmentForm.number} onChange={(e) => setApartmentForm({ ...apartmentForm, number: e.target.value })} placeholder="169" />
+                        </div>
+                        <div className="md:col-span-2">
+                          <Label>Описание</Label>
+                          <Textarea value={apartmentForm.description} onChange={(e) => setApartmentForm({ ...apartmentForm, description: e.target.value })} />
+                        </div>
+                        <div className="md:col-span-2">
+                          <Label>Адрес</Label>
+                          <Input value={apartmentForm.address} onChange={(e) => setApartmentForm({ ...apartmentForm, address: e.target.value })} placeholder="Нагорный тупик 13" />
+                        </div>
+                        <div>
+                          <Label>Wi-Fi пароль</Label>
+                          <Input value={apartmentForm.wifi_password} onChange={(e) => setApartmentForm({ ...apartmentForm, wifi_password: e.target.value })} placeholder="логин/пароль" />
+                        </div>
+                        <div>
+                          <Label>Код подъезда</Label>
+                          <Input value={apartmentForm.entrance_code} onChange={(e) => setApartmentForm({ ...apartmentForm, entrance_code: e.target.value })} placeholder="#2020" />
+                        </div>
+                        <div>
+                          <Label>Код замка</Label>
+                          <Input value={apartmentForm.lock_code} onChange={(e) => setApartmentForm({ ...apartmentForm, lock_code: e.target.value })} placeholder="1111" />
+                        </div>
                       </div>
-                      <div>
-                        <Label>Номер</Label>
-                        <Input value={apartmentForm.number} onChange={(e) => setApartmentForm({ ...apartmentForm, number: e.target.value })} placeholder="169" />
+                    </TabsContent>
+
+                    <TabsContent value="content">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label>Имя менеджера</Label>
+                          <Input value={apartmentForm.manager_name} onChange={(e) => setApartmentForm({ ...apartmentForm, manager_name: e.target.value })} />
+                        </div>
+                        <div>
+                          <Label>Телефон</Label>
+                          <Input value={apartmentForm.manager_phone} onChange={(e) => setApartmentForm({ ...apartmentForm, manager_phone: e.target.value })} />
+                        </div>
+                        <div className="md:col-span-2">
+                          <Label>Email</Label>
+                          <Input value={apartmentForm.manager_email} onChange={(e) => setApartmentForm({ ...apartmentForm, manager_email: e.target.value })} />
+                        </div>
+                        <div className="md:col-span-2">
+                          <Label>FAQ: Заселение</Label>
+                          <Textarea rows={3} value={apartmentForm.faq_checkin} onChange={(e) => setApartmentForm({ ...apartmentForm, faq_checkin: e.target.value })} />
+                        </div>
+                        <div className="md:col-span-2">
+                          <Label>FAQ: Апартаменты</Label>
+                          <Textarea rows={3} value={apartmentForm.faq_apartment} onChange={(e) => setApartmentForm({ ...apartmentForm, faq_apartment: e.target.value })} />
+                        </div>
+                        <div className="md:col-span-2">
+                          <Label>FAQ: Территория</Label>
+                          <Textarea rows={3} value={apartmentForm.faq_area} onChange={(e) => setApartmentForm({ ...apartmentForm, faq_area: e.target.value })} />
+                        </div>
+                        <div className="md:col-span-2">
+                          <Label>Код встраивания Яндекс.Карт</Label>
+                          <Textarea rows={3} value={apartmentForm.map_embed_code} onChange={(e) => setApartmentForm({ ...apartmentForm, map_embed_code: e.target.value })} />
+                        </div>
                       </div>
-                      <div className="md:col-span-2">
-                        <Label>Описание</Label>
-                        <Textarea value={apartmentForm.description} onChange={(e) => setApartmentForm({ ...apartmentForm, description: e.target.value })} />
+                    </TabsContent>
+
+                    <TabsContent value="media">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <MediaUpload
+                          apartmentId={selectedApartment?.id!}
+                          directusField="photos"
+                          multiple
+                          title="Фотографии апартамента"
+                          onUploadSuccess={() => {}}
+                        />
+                        <MediaUpload
+                          apartmentId={selectedApartment?.id!}
+                          directusField="video_entrance"
+                          title="Видео подъезда"
+                          onUploadSuccess={() => {}}
+                        />
+                        <MediaUpload
+                          apartmentId={selectedApartment?.id!}
+                          directusField="video_lock"
+                          title="Видео электронного замка"
+                          onUploadSuccess={() => {}}
+                        />
                       </div>
-                      <div className="md:col-span-2">
-                        <Label>Адрес</Label>
-                        <Input value={apartmentForm.address} onChange={(e) => setApartmentForm({ ...apartmentForm, address: e.target.value })} placeholder="Нагорный тупик 13" />
-                      </div>
-                      <div>
-                        <Label>Wi-Fi пароль</Label>
-                        <Input value={apartmentForm.wifi_password} onChange={(e) => setApartmentForm({ ...apartmentForm, wifi_password: e.target.value })} placeholder="логин/пароль" />
-                      </div>
-                      <div>
-                        <Label>Код подъезда</Label>
-                        <Input value={apartmentForm.entrance_code} onChange={(e) => setApartmentForm({ ...apartmentForm, entrance_code: e.target.value })} placeholder="#2020" />
-                      </div>
-                      <div>
-                        <Label>Код замка</Label>
-                        <Input value={apartmentForm.lock_code} onChange={(e) => setApartmentForm({ ...apartmentForm, lock_code: e.target.value })} placeholder="1111" />
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button onClick={saveApartment} className="flex-1">{selectedApartment?.id ? 'Обновить' : 'Создать'}</Button>
-                      <Button variant="outline" className="flex-1" onClick={() => setShowApartmentForm(false)}>Отмена</Button>
-                    </div>
+                    </TabsContent>
+                  </Tabs>
+                  <div className="flex gap-2 pt-4">
+                    <Button onClick={saveApartment} className="flex-1">{selectedApartment?.id ? 'Обновить' : 'Создать'}</Button>
+                    <Button variant="outline" className="flex-1" onClick={() => setShowApartmentForm(false)}>Отмена</Button>
                   </div>
-                </Card>
-              )}
+                </DialogContent>
+              </Dialog>
             </TabsContent>
           </Tabs>
         </Card>

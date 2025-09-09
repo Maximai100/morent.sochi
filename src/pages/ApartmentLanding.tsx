@@ -139,7 +139,7 @@ const ApartmentLanding = () => {
       
       <WaveDivider />
       
-      <MediaDisplay apartmentId={apartment.id} />
+      <MediaDisplay apartmentId={apartment.id} useApartmentFields />
       
       <WaveDivider />
       
