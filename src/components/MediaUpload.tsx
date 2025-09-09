@@ -33,10 +33,22 @@ export const MediaUpload = ({ category, title, onUploadSuccess, apartmentId, dir
   const [files, setFiles] = useState<MediaFileUI[]>([]);
   const [uploading, setUploading] = useState(false);
   const [description, setDescription] = useState("");
+  const MAX_FILE_MB = Number(import.meta.env.VITE_UPLOAD_LIMIT_MB || 50);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = event.target.files;
     if (!fileList || fileList.length === 0) return;
+
+    // Client-side size guard to prevent 413 at proxy
+    const tooLarge = Array.from(fileList).find(f => (f.size / (1024 * 1024)) > MAX_FILE_MB);
+    if (tooLarge) {
+      toast({
+        title: "Файл слишком большой",
+        description: `Размер файла превышает ${MAX_FILE_MB} МБ. Уменьшите размер или увеличьте лимит на сервере`,
+        variant: "destructive",
+      });
+      return;
+    }
 
     setUploading(true);
 
@@ -74,11 +86,16 @@ export const MediaUpload = ({ category, title, onUploadSuccess, apartmentId, dir
       setDescription("");
       loadFiles();
       onUploadSuccess?.();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upload error:', error);
+      const status = error?.response?.status;
+      const is413 = status === 413 || /\b413\b|payload too large|entity too large/i.test(String(error?.message || ''));
+      const desc = is413
+        ? `Сервер отклонил загрузку (413: слишком большой запрос). Увеличьте лимит 'client_max_body_size' в прокси и включите CORS для http://localhost:8080`
+        : "Не удалось загрузить файлы";
       toast({
         title: "Ошибка загрузки",
-        description: "Не удалось загрузить файлы",
+        description: desc,
         variant: "destructive",
       });
     } finally {

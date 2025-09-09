@@ -74,8 +74,16 @@ export const MediaDisplay = ({ apartmentId, category, useApartmentFields, fallba
           setVideos(videoFiles.map((f: any) => ({ id: f.id, filename: f.filename_download, url: `${DIRECTUS_URL}/assets/${f.id}`, file_type: f.type?.startsWith('video/') ? 'video' : 'image', description: f.description || f.filename_download })));
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading media:', error);
+      const status = error?.response?.status;
+      const cors = /CORS|Cross-Origin/i.test(String(error?.message || ''));
+      if (status === 413) {
+        console.error('Directus returned 413 (Payload Too Large). Increase client_max_body_size and Directus upload limits.');
+      }
+      if (cors) {
+        console.error('CORS appears to be misconfigured. Allow http://localhost:8080 in Directus CORS settings.');
+      }
     } finally {
       setLoading(false);
     }
