@@ -152,13 +152,23 @@ const ManagerPanel = () => {
         }
       };
 
-      await directus.request(createItem('bookings', {
-        apartment_id: formData.apartmentId,
-        guest_name: formData.guestName,
-        checkin_date: toDirectusDate(formData.checkIn),
-        checkout_date: toDirectusDate(formData.checkOut),
-        // lock_code поле может отсутствовать в вашей коллекции; не отправляем, чтобы избежать ошибки
-      }));
+      // Try with apartment_id (our default); if fails due to schema mismatch, retry with 'apartment'
+      try {
+        await directus.request(createItem('bookings', {
+          apartment_id: formData.apartmentId,
+          guest_name: formData.guestName,
+          checkin_date: toDirectusDate(formData.checkIn),
+          checkout_date: toDirectusDate(formData.checkOut),
+        }));
+      } catch (innerError: any) {
+        // retry with alternative field name used in some Directus setups
+        await directus.request(createItem('bookings', {
+          apartment: formData.apartmentId,
+          guest_name: formData.guestName,
+          checkin_date: toDirectusDate(formData.checkIn),
+          checkout_date: toDirectusDate(formData.checkOut),
+        }));
+      }
 
       const link = generateGuestLink();
       await navigator.clipboard.writeText(link);
