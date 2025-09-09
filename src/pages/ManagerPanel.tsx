@@ -155,12 +155,21 @@ const ManagerPanel = () => {
       // Try several schema variants for field names
       const checkinIso = toDirectusDate(formData.checkIn);
       const checkoutIso = toDirectusDate(formData.checkOut);
+      const makeSlug = () => {
+        const base = `${formData.guestName || 'guest'}-${checkinIso || ''}`
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)+/g, '');
+        const rnd = Math.random().toString(36).slice(2, 8);
+        return `${base}-${rnd}`;
+      };
+      const slug = makeSlug();
       let created: any | null = null;
       const variants: Array<Record<string, any>> = [
-        { apartment_id: formData.apartmentId, guest_name: formData.guestName, checkin_date: checkinIso, checkout_date: checkoutIso },
-        { apartment: formData.apartmentId, guest_name: formData.guestName, checkin_date: checkinIso, checkout_date: checkoutIso },
-        { apartment_id: formData.apartmentId, guest_name: formData.guestName, check_in_date: checkinIso, check_out_date: checkoutIso },
-        { apartment: formData.apartmentId, guest_name: formData.guestName, check_in_date: checkinIso, check_out_date: checkoutIso },
+        { apartment_id: formData.apartmentId, guest_name: formData.guestName, checkin_date: checkinIso, checkout_date: checkoutIso, slug },
+        { apartment: formData.apartmentId, guest_name: formData.guestName, checkin_date: checkinIso, checkout_date: checkoutIso, slug },
+        { apartment_id: formData.apartmentId, guest_name: formData.guestName, check_in_date: checkinIso, check_out_date: checkoutIso, slug },
+        { apartment: formData.apartmentId, guest_name: formData.guestName, check_in_date: checkinIso, check_out_date: checkoutIso, slug },
       ];
 
       let lastError: any;
@@ -182,6 +191,9 @@ const ManagerPanel = () => {
       const details = e?.errors?.[0];
       const message = details?.message || e?.message || 'Не удалось создать бронирование';
       console.error('Create booking error:', e);
+      if (e?.response && typeof e.response.json === 'function') {
+        try { e.response.json().then((j: any) => console.error('Directus error body:', j)); } catch {}
+      }
       toast({ title: "Ошибка", description: message, variant: "destructive" });
     }
   };
