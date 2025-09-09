@@ -31,6 +31,10 @@ const ManagerPanel = () => {
   const [checkInDate, setCheckInDate] = useState<Date | undefined>(undefined);
   const [checkOutDate, setCheckOutDate] = useState<Date | undefined>(undefined);
 
+  // Bookings list & editing
+  const [bookings, setBookings] = useState<Array<{ id: string; apartment_id: string; guest_name: string; check_in_date?: string; check_out_date?: string }>>([]);
+  const [editingBookingId, setEditingBookingId] = useState<string | null>(null);
+
   const [showApartmentForm, setShowApartmentForm] = useState(false);
   const [selectedApartment, setSelectedApartment] = useState<null | { id?: string }>(null);
   const [apartmentForm, setApartmentForm] = useState({
@@ -86,6 +90,33 @@ const ManagerPanel = () => {
     };
     load();
   }, []);
+
+  // Load bookings on mount and when selected apartment changes
+  useEffect(() => {
+    loadBookings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.apartmentId]);
+
+  const loadBookings = async () => {
+    try {
+      const filter = formData.apartmentId ? { apartment_id: { _eq: formData.apartmentId } } as any : undefined;
+      const items = await directus.request(readItems<BookingRecord>('bookings', {
+        sort: ['-date_created'],
+        filter,
+        limit: 50,
+      }));
+      const mapped = (items || []).map((b: any) => ({
+        id: b.id,
+        apartment_id: b.apartment_id || b.apartment,
+        guest_name: b.guest_name || '',
+        check_in_date: b.checkin_date || b.check_in_date || '',
+        check_out_date: b.checkout_date || b.check_out_date || '',
+      }));
+      setBookings(mapped);
+    } catch (e) {
+      // ignore silently to not break UI
+    }
+  };
 
   const { errors, validateForm, validateAndClearError, hasErrors } = useFormValidation(validationRules);
 
@@ -176,6 +207,7 @@ const ManagerPanel = () => {
       }
       if (!created) throw lastError;
 
+      await loadBookings();
       const link = generateGuestLink();
       await navigator.clipboard.writeText(link);
       toast({ title: "Бронирование создано", description: "Ссылка скопирована в буфер обмена" });
@@ -189,6 +221,98 @@ const ManagerPanel = () => {
       }
       toast({ title: "Ошибка", description: message, variant: "destructive" });
     }
+  };
+
+  const updateBooking = async () => {
+    if (!editingBookingId) return;
+    if (!formData.guestName || !formData.checkIn || !formData.checkOut) {
+      toast({ title: "Заполните ФИО и даты", variant: "destructive" });
+      return;
+    }
+    try {
+      const toDirectusDate = (value: string): string | undefined => {
+        if (!value) return undefined;
+        try {
+          const parsed = parse(value, 'dd.MM.yyyy', new Date());
+          if (isNaN(parsed.getTime())) return undefined;
+          return format(parsed, 'yyyy-MM-dd');
+        } catch {
+          return undefined;
+        }
+      };
+      const checkinIso = toDirectusDate(formData.checkIn);
+      const checkoutIso = toDirectusDate(formData.checkOut);
+      const variants: Array<Record<string, any>> = [
+        { guest_name: formData.guestName, checkin_date: checkinIso, checkout_date: checkoutIso },
+        { guest_name: formData.guestName, check_in_date: checkinIso, check_out_date: checkoutIso },
+      ];
+      let success = false;
+      let lastError: any;
+      for (const payload of variants) {
+        try {
+          const compact = Object.fromEntries(Object.entries(payload).filter(([, v]) => v !== undefined && v !== null && v !== ''));
+          await directus.request(updateItem('bookings', editingBookingId, compact as any));
+          success = true;
+          break;
+        } catch (err) {
+          lastError = err;
+        }
+      }
+      if (!success) throw lastError;
+
+      await loadBookings();
+      setEditingBookingId(null);
+      toast({ title: 'Бронирование обновлено' });
+    } catch (e: any) {
+      const details = e?.errors?.[0];
+      const message = details?.message || e?.message || 'Не удалось обновить бронирование';
+      console.error('Update booking error:', e);
+      toast({ title: 'Ошибка', description: message, variant: 'destructive' });
+    }
+  };
+
+  const deleteBooking = async (bookingId: string) => {
+    if (!confirm('Удалить бронирование?')) return;
+    try {
+      await directus.request(deleteItem('bookings', bookingId));
+      await loadBookings();
+      toast({ title: 'Бронирование удалено' });
+    } catch (e) {
+      toast({ title: 'Ошибка удаления', variant: 'destructive' });
+    }
+  };
+
+  const startEditBooking = (b: { id: string; apartment_id: string; guest_name: string; check_in_date?: string; check_out_date?: string; }) => {
+    setEditingBookingId(b.id);
+    // set apartment selection to booking's apartment for clarity
+    updateFormData('apartmentId', b.apartment_id);
+    // fill form fields
+    const toDisplay = (v?: string) => {
+      if (!v) return '';
+      // try yyyy-MM-dd
+      try {
+        const d = parse(v, 'yyyy-MM-dd', new Date());
+        if (!isNaN(d.getTime())) return format(d, 'dd.MM.yyyy');
+      } catch {}
+      return v;
+    };
+    setFormData(prev => ({
+      ...prev,
+      guestName: b.guest_name || '',
+      checkIn: toDisplay(b.check_in_date),
+      checkOut: toDisplay(b.check_out_date),
+    }));
+    // update calendar pickers
+    try {
+      if (b.check_in_date) {
+        const d = parse(b.check_in_date, 'yyyy-MM-dd', new Date());
+        if (!isNaN(d.getTime())) setCheckInDate(d);
+      }
+      if (b.check_out_date) {
+        const d2 = parse(b.check_out_date, 'yyyy-MM-dd', new Date());
+        if (!isNaN(d2.getTime())) setCheckOutDate(d2);
+      }
+    } catch {}
   };
 
   const saveApartment = async () => {
@@ -441,7 +565,7 @@ const ManagerPanel = () => {
                   </div>
                 </div>
 
-                {/* Preview and Actions */}
+                {/* Preview, Actions and Bookings List */}
                 <div className="space-y-6">
                   <h2 className="text-xl font-semibold font-playfair text-primary border-b border-border pb-2 uppercase">
                     Ссылка для отправки
@@ -474,13 +598,20 @@ const ManagerPanel = () => {
                       Подготовить сообщение для гостя
                     </Button>
 
-                    <Button 
-                      onClick={createBooking}
-                      variant="default"
-                      className="w-full"
-                    >
-                      Создать бронирование
-                    </Button>
+                    {editingBookingId ? (
+                      <div className="flex gap-2">
+                        <Button onClick={updateBooking} className="flex-1">Сохранить изменения</Button>
+                        <Button variant="outline" className="flex-1" onClick={() => setEditingBookingId(null)}>Отмена</Button>
+                      </div>
+                    ) : (
+                      <Button 
+                        onClick={createBooking}
+                        variant="default"
+                        className="w-full"
+                      >
+                        Создать бронирование
+                      </Button>
+                    )}
                   </div>
 
                   <Card className="p-4 bg-accent/5 border-accent/20">
@@ -492,6 +623,33 @@ const ManagerPanel = () => {
                       [Ссылка будет вставлена автоматически]
                     </p>
                   </Card>
+                  <div className="space-y-3">
+                    <h3 className="text-xl font-semibold font-playfair text-primary border-b border-border pb-2 uppercase">Текущие бронирования</h3>
+                    <div className="grid grid-cols-1 gap-3">
+                      {bookings.map((b) => (
+                        <Card key={b.id} className="p-3">
+                          <div className="flex items-center justify-between">
+                            <div className="text-left">
+                              <div className="font-medium">{b.guest_name}</div>
+                              <div className="text-sm text-muted-foreground">Заезд: {b.check_in_date || '-'} · Выезд: {b.check_out_date || '-'}</div>
+                            </div>
+                            <div className="flex gap-1">
+                              <Button variant="ghost" size="sm" onClick={() => startEditBooking(b)}>
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => deleteBooking(b.id)}>
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                      {bookings.length === 0 && (
+                        <div className="text-sm text-muted-foreground">Нет бронирований{formData.apartmentId ? ' для выбранного апартамента' : ''}.</div>
+                      )}
+                    </div>
+                  </div>
+
                 </div>
               </div>
             </TabsContent>
