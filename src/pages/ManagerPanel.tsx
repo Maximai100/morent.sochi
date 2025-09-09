@@ -152,23 +152,27 @@ const ManagerPanel = () => {
         }
       };
 
-      // Try with apartment_id (our default); if fails due to schema mismatch, retry with 'apartment'
-      try {
-        await directus.request(createItem('bookings', {
-          apartment_id: formData.apartmentId,
-          guest_name: formData.guestName,
-          checkin_date: toDirectusDate(formData.checkIn),
-          checkout_date: toDirectusDate(formData.checkOut),
-        }));
-      } catch (innerError: any) {
-        // retry with alternative field name used in some Directus setups
-        await directus.request(createItem('bookings', {
-          apartment: formData.apartmentId,
-          guest_name: formData.guestName,
-          checkin_date: toDirectusDate(formData.checkIn),
-          checkout_date: toDirectusDate(formData.checkOut),
-        }));
+      // Try several schema variants for field names
+      const checkinIso = toDirectusDate(formData.checkIn);
+      const checkoutIso = toDirectusDate(formData.checkOut);
+      let created: any | null = null;
+      const variants: Array<Record<string, any>> = [
+        { apartment_id: formData.apartmentId, guest_name: formData.guestName, checkin_date: checkinIso, checkout_date: checkoutIso },
+        { apartment: formData.apartmentId, guest_name: formData.guestName, checkin_date: checkinIso, checkout_date: checkoutIso },
+        { apartment_id: formData.apartmentId, guest_name: formData.guestName, check_in_date: checkinIso, check_out_date: checkoutIso },
+        { apartment: formData.apartmentId, guest_name: formData.guestName, check_in_date: checkinIso, check_out_date: checkoutIso },
+      ];
+
+      let lastError: any;
+      for (const payload of variants) {
+        try {
+          created = await directus.request(createItem('bookings', payload));
+          break;
+        } catch (err) {
+          lastError = err;
+        }
       }
+      if (!created) throw lastError;
 
       const link = generateGuestLink();
       await navigator.clipboard.writeText(link);
