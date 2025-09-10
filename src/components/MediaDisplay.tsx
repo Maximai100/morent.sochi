@@ -37,9 +37,10 @@ interface MediaDisplayProps {
   maxVideos?: number;
   photoFields?: string[];
   videoFields?: string[];
+  hideTitle?: boolean;
 }
 
-export const MediaDisplay = ({ apartmentId, category, useApartmentFields, fallbackText, className, showPhotos = true, showVideos = true, maxPhotos, maxVideos, photoFields = ['photos'], videoFields = ['video_entrance', 'video_lock'] }: MediaDisplayProps) => {
+export const MediaDisplay = ({ apartmentId, category, useApartmentFields, fallbackText, className, showPhotos = true, showVideos = true, maxPhotos, maxVideos, photoFields = ['photos'], videoFields = ['video_entrance', 'video_lock'], hideTitle = false }: MediaDisplayProps) => {
   const [photos, setPhotos] = useState<MediaFileUI[]>([]);
   const [videos, setVideos] = useState<MediaFileUI[]>([]);
   const [loading, setLoading] = useState(true);
@@ -172,7 +173,7 @@ export const MediaDisplay = ({ apartmentId, category, useApartmentFields, fallba
       {/* Photo Gallery */}
       {photos.length > 0 && (
         <div className="stagger-item">
-          <h3 className="mb-6 uppercase text-left text-gradient">ФОТОГРАФИИ</h3>
+          {!hideTitle && <h3 className="mb-6 uppercase text-left text-gradient">ФОТОГРАФИИ</h3>}
           
           <Carousel className="w-full max-w-4xl mx-auto">
             <CarouselContent>

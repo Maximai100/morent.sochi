@@ -118,13 +118,17 @@ const ApartmentLanding = () => {
 
   return (
     <div className="min-h-screen bg-white guest-minimal">
-      <div className="max-w-4xl mx-auto px-4 space-y-8">
+      <div className="max-w-4xl mx-auto px-4">
         <div className="stagger-item">
           <HeroSection 
             title={apartment.hero_title}
             subtitle={apartment.hero_subtitle}
             apartmentNumber={apartment.number}
           />
+        </div>
+        
+        <div className="py-8">
+          <WaveDivider />
         </div>
         
         <div className="stagger-item">
@@ -135,7 +139,9 @@ const ApartmentLanding = () => {
           />
         </div>
         
-        <WaveDivider />
+        <div className="py-8">
+          <WaveDivider />
+        </div>
         
         <div className="stagger-item">
           <ApartmentInfo
@@ -148,19 +154,25 @@ const ApartmentLanding = () => {
           />
         </div>
         
-        <WaveDivider />
+        <div className="py-8">
+          <WaveDivider />
+        </div>
         
         <div className="stagger-item">
           <CheckinSection apartmentId={apartment.id} />
         </div>
         
-        <WaveDivider />
+        <div className="py-8">
+          <WaveDivider />
+        </div>
         
         <div className="stagger-item">
           <ApartmentFAQ faqs={apartment.faq_data} />
         </div>
         
-        <WaveDivider />
+        <div className="py-8">
+          <WaveDivider />
+        </div>
         
         <div className="stagger-item">
           <YandexMap 
@@ -169,17 +181,23 @@ const ApartmentLanding = () => {
           />
         </div>
         
-        <WaveDivider />
+        <div className="py-8">
+          <WaveDivider />
+        </div>
         
         <div className="stagger-item">
           <ContactsSection contactInfo={apartment.contact_info} />
         </div>
         
-        <WaveDivider />
+        <div className="py-8">
+          <WaveDivider />
+        </div>
         
         <div className="stagger-item">
           <LoyaltySection info={apartment.loyalty_info} />
         </div>
+        
+        <div className="py-8"></div>
       </div>
     </div>
   );
