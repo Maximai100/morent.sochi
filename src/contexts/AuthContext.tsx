@@ -4,6 +4,7 @@ import { logger } from '@/utils/logger';
 
 interface AuthContextType {
   isAuthenticated: boolean;
+  isLoading: boolean;
   login: (password: string) => boolean;
   logout: () => void;
   checkAuth: () => boolean;
@@ -41,17 +42,27 @@ const isAuthValid = (authData: AuthData | null): boolean => {
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   // Check authentication on mount
   useEffect(() => {
-    checkAuth();
+    const initAuth = async () => {
+      // Small delay to ensure localStorage is accessible
+      await new Promise(resolve => setTimeout(resolve, 100));
+      checkAuth();
+      setIsLoading(false);
+    };
+    initAuth();
   }, []);
 
   const checkAuth = (): boolean => {
     try {
       const stored = localStorage.getItem(AUTH_STORAGE_KEY);
+      logger.info('Checking authentication...', { hasStoredToken: !!stored });
+      
       if (!stored) {
+        logger.info('No stored authentication token found');
         setIsAuthenticated(false);
         return false;
       }
@@ -59,16 +70,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const authData: AuthData = JSON.parse(stored);
       const valid = isAuthValid(authData);
       
+      logger.info('Token validation result', { 
+        isValid: valid, 
+        expiryTime: new Date(authData.expiry).toISOString(),
+        currentTime: new Date().toISOString()
+      });
+      
       if (!valid) {
+        logger.warn('Authentication token expired or invalid, removing from storage');
         localStorage.removeItem(AUTH_STORAGE_KEY);
         setIsAuthenticated(false);
         return false;
       }
 
+      logger.info('Authentication successful, user is authenticated');
       setIsAuthenticated(true);
       return true;
     } catch (error) {
       logger.error('Failed to check authentication', error);
+      // Clear potentially corrupted data
+      localStorage.removeItem(AUTH_STORAGE_KEY);
       setIsAuthenticated(false);
       return false;
     }
@@ -78,7 +99,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       // Simple password check (in production, this should be done on backend)
       if (password !== MANAGER_PASSWORD) {
-        logger.warn('Failed login attempt');
+        logger.warn('Failed login attempt - incorrect password');
         return false;
       }
 
@@ -90,7 +111,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authData));
       setIsAuthenticated(true);
-      logger.info('Manager logged in successfully');
+      
+      logger.info('Manager logged in successfully', {
+        expiryTime: new Date(authData.expiry).toISOString(),
+        tokenLength: authData.token.length
+      });
       
       return true;
     } catch (error) {
@@ -111,7 +136,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout, checkAuth }}>
+    <AuthContext.Provider value={{ isAuthenticated, isLoading, login, logout, checkAuth }}>
       {children}
     </AuthContext.Provider>
   );
