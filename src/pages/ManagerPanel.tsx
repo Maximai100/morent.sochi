@@ -667,7 +667,22 @@ const ManagerPanel = () => {
                 <Button
                   onClick={() => {
                     setSelectedApartment(null);
-                    setApartmentForm({ name: '', number: '', description: '', address: '', wifi_password: '', entrance_code: '', lock_code: '' });
+                    setApartmentForm({ 
+                      name: '', 
+                      number: '', 
+                      description: '', 
+                      address: '', 
+                      wifi_password: '', 
+                      entrance_code: '', 
+                      lock_code: '',
+                      manager_name: '',
+                      manager_phone: '',
+                      manager_email: '',
+                      faq_checkin: '',
+                      faq_apartment: '',
+                      faq_area: '',
+                      map_embed_code: ''
+                    });
                     setShowApartmentForm(true);
                   }}
                   className="touch-target"
