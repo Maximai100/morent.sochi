@@ -8,7 +8,7 @@ interface CheckinSectionProps {
 
 export const CheckinSection = ({ apartmentId }: CheckinSectionProps) => {
   return (
-    <Card className="p-8 shadow-premium hover-lift space-y-6 wave-divider">
+    <Card className="p-8 shadow-premium hover-lift space-y-6">
       <div className="stagger-item">
         <h3 className="mb-6 uppercase text-left text-gradient">ЗАСЕЛЕНИЕ</h3>
         

@@ -43,7 +43,7 @@ export const ApartmentInfo = ({
     }
   };
   return (
-    <Card className="p-8 shadow-premium hover-lift space-y-6 wave-divider">
+    <Card className="p-8 shadow-premium hover-lift space-y-6">
       {/* Apartment Details */}
       <Card className="stagger-item p-6 bg-muted border-2 border-primary/20 hover-glow">
         <div className="flex items-start gap-3 mb-4">
