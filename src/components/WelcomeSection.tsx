@@ -5,9 +5,10 @@ import { WaveDivider } from "@/components/WaveDivider";
 interface WelcomeSectionProps {
   guestName?: string;
   checkInDate?: string;
+  apartmentId?: string;
 }
 
-export const WelcomeSection = ({ guestName, checkInDate }: WelcomeSectionProps) => {
+export const WelcomeSection = ({ guestName, checkInDate, apartmentId }: WelcomeSectionProps) => {
   return (
     <>
       <Card className="shadow-premium hover-lift overflow-hidden">
@@ -28,7 +29,11 @@ export const WelcomeSection = ({ guestName, checkInDate }: WelcomeSectionProps) 
         </div>
         
         <MediaDisplay 
-          category="welcome_photos" 
+          apartmentId={apartmentId}
+          useApartmentFields
+          showPhotos={true}
+          showVideos={false}
+          maxPhotos={1}
           fallbackText="Фотографии добавляются через панель администратора"
           className="min-h-[400px] px-8 pb-8"
         />

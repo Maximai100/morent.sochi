@@ -8,6 +8,7 @@ import { Plus, Trash2, ExternalLink } from "lucide-react";
 import { directus, ApartmentRecord } from "@/integrations/directus/client";
 import { readItem, updateItem } from '@directus/sdk';
 import { toast } from "sonner";
+import { logger } from "@/utils/logger";
 
 interface ApartmentContent {
   id: string;
@@ -54,7 +55,7 @@ export const ApartmentContentEditor = ({ apartmentId }: ApartmentContentEditorPr
         });
       }
     } catch (error) {
-      console.error('Error:', error);
+      logger.error('Error loading apartment content', error);
     } finally {
       setLoading(false);
     }

@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { logger } from "@/utils/logger";
 import { HeroSection } from "@/components/HeroSection";
 import { WelcomeSection } from "@/components/WelcomeSection";
 import { ApartmentInfo } from "@/components/ApartmentInfo";
-import { MediaDisplay } from "@/components/MediaDisplay";
+import { CheckinSection } from "@/components/CheckinSection";
 import { ApartmentFAQ } from "@/components/ApartmentFAQ";
 import { ContactsSection } from "@/components/ContactsSection";
 import { LoyaltySection } from "@/components/LoyaltySection";
@@ -89,7 +90,7 @@ const ApartmentLanding = () => {
         setApartment(mapped);
       }
     } catch (error) {
-      console.error('Error:', error);
+      logger.error('Error loading apartment', error);
     } finally {
       setLoading(false);
     }
@@ -124,6 +125,7 @@ const ApartmentLanding = () => {
       <WelcomeSection 
         guestName={guestName}
         checkInDate={checkInDate}
+        apartmentId={apartment.id}
       />
       
       <WaveDivider />
@@ -139,7 +141,7 @@ const ApartmentLanding = () => {
       
       <WaveDivider />
       
-      <MediaDisplay apartmentId={apartment.id} useApartmentFields />
+      <CheckinSection apartmentId={apartment.id} />
       
       <WaveDivider />
       

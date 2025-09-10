@@ -1,0 +1,226 @@
+/* Mobile-specific styles and fixes */
+
+/* Responsive modals */
+@media (max-width: 768px) {
+  /* Full-screen modals on mobile */
+  [role="dialog"] > div:first-child {
+    max-width: 100% !important;
+    width: 100% !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    max-height: 100vh !important;
+  }
+
+  /* Adjust dialog content for mobile */
+  [role="dialog"] .overflow-y-auto {
+    max-height: calc(100vh - 120px) !important;
+  }
+
+  /* Full-width buttons on mobile */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Stack form fields on mobile */
+  .grid.md\:grid-cols-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Responsive tables */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table-responsive table {
+    min-width: 600px;
+  }
+
+  /* Card spacing on mobile */
+  .p-8 {
+    padding: 1rem !important;
+  }
+
+  .p-6 {
+    padding: 1rem !important;
+  }
+
+  /* Text size adjustments */
+  .text-3xl {
+    font-size: 1.5rem !important;
+  }
+
+  .text-2xl {
+    font-size: 1.25rem !important;
+  }
+
+  /* Tab buttons - stack vertically on very small screens */
+  @media (max-width: 480px) {
+    .grid.grid-cols-2 {
+      grid-template-columns: 1fr !important;
+    }
+  }
+
+  /* Manager panel specific */
+  .max-w-6xl {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+
+  /* Apartment cards - single column on mobile */
+  .grid.lg\:grid-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Buttons group - stack on mobile */
+  .flex.gap-2 > button {
+    flex: 1;
+  }
+
+  @media (max-width: 480px) {
+    .flex.items-center.justify-between {
+      flex-direction: column;
+      align-items: stretch !important;
+      gap: 1rem;
+    }
+
+    .flex.items-center.gap-2 {
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .flex.items-center.gap-2 > button {
+      width: 100%;
+    }
+  }
+
+  /* Calendar popover - full width on mobile */
+  [data-radix-popper-content-wrapper] {
+    width: 100% !important;
+    max-width: calc(100vw - 2rem) !important;
+  }
+
+  /* Select dropdown - full width */
+  [role="listbox"] {
+    width: 100% !important;
+    max-width: calc(100vw - 2rem) !important;
+  }
+
+  /* Media upload cards */
+  .grid.md\:grid-cols-2.gap-4 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Hero section text */
+  .text-7xl {
+    font-size: 2.5rem !important;
+  }
+
+  /* Carousel controls */
+  .carousel-control {
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .carousel-control {
+      display: flex;
+    }
+  }
+}
+
+/* Touch-friendly elements */
+.touch-friendly {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+  touch-action: manipulation;
+}
+
+/* Prevent horizontal scroll */
+body {
+  overflow-x: hidden;
+}
+
+.min-h-screen {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+}
+
+/* iOS specific fixes */
+@supports (-webkit-touch-callout: none) {
+  /* iOS viewport height fix */
+  .h-screen {
+    height: -webkit-fill-available;
+  }
+
+  /* iOS safe area insets */
+  .safe-area-inset {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Prevent iOS zoom on input focus */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Android specific fixes */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  input:focus,
+  select:focus,
+  textarea:focus {
+    font-size: 16px !important;
+  }
+}
+
+/* Responsive images */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Responsive videos */
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Prevent text selection on buttons */
+button,
+[role="button"] {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Smooth scrolling */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Accessibility: Focus visible */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Hide scrollbar on mobile for better UX */
+@media (max-width: 768px) {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

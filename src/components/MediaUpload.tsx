@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { directus, DIRECTUS_URL } from "@/integrations/directus/client";
 import { uploadFiles, readFiles, deleteFile } from '@directus/sdk';
+import { logger } from "@/utils/logger";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -80,8 +81,9 @@ export const MediaUpload = ({ category, title, onUploadSuccess, apartmentId, dir
           // Merge with existing
           let targetIds = uploadedIds.slice();
           if (multiple) {
-            const current: any = await (directus as any).request(readItem('apartments', apartmentId, { fields: [directusField] }));
-            const existing = current?.[directusField] || [];
+            const current: any = await (directus as any).request(readItem('apartments', apartmentId, { fields: [directusField, directusField.toUpperCase().slice(0,1)+directusField.slice(1)] }));
+            const currentFieldValue = current?.[directusField] ?? current?.[directusField.toUpperCase().slice(0,1)+directusField.slice(1)];
+            const existing = currentFieldValue || [];
             const existingIds = Array.isArray(existing) ? existing.map((v: any) => (typeof v === 'string' ? v : v.id)) : [];
             targetIds = Array.from(new Set([...existingIds, ...uploadedIds]));
           }
@@ -95,24 +97,66 @@ export const MediaUpload = ({ category, title, onUploadSuccess, apartmentId, dir
           const arrayOfIdObjects = targetIds.map((id) => ({ id }));
           const arrayWithType = targetIds.map((id) => ({ id, type: byId.get(id)?.type }));
 
-          const variants: Array<any> = multiple
-            ? [arrayOfIds, arrayOfIdObjects, arrayWithType]
-            : [singleId, { id: singleId }, { id: singleId, type: byId.get(singleId)?.type }];
+          const keyCandidates = [directusField, directusField.toUpperCase().slice(0,1)+directusField.slice(1)];
+          // Deep write variant for M2M alias using junction key 'directus_files_id'
+          const deepCreate = { create: targetIds.map((id) => ({ directus_files_id: id })) };
 
-          let linked = false;
-          let lastErr: any;
-          for (const value of variants) {
+          const deepConnect = { connect: arrayOfIds };
+          // For File (single) just set last file id
+          if (!multiple) {
+            const keyCandidates = [directusField, directusField.toUpperCase().slice(0,1)+directusField.slice(1)];
+            let linked = false;
+            let lastErr: any;
+            for (const key of keyCandidates) {
+              try {
+                await (directus as any).request(updateItem('apartments', apartmentId, { [key]: singleId } as any));
+                linked = true;
+                break;
+              } catch (e) { lastErr = e; }
+              try {
+                await (directus as any).request(updateItem('apartments', apartmentId, { [key]: { id: singleId } } as any));
+                linked = true;
+                break;
+              } catch (e) { lastErr = e; }
+            }
+            if (!linked) throw lastErr;
+          } else {
+            const valueVariants: Array<any> = [arrayOfIds, arrayOfIdObjects, arrayWithType, deepConnect, deepCreate];
+            let linked = false;
+            let lastErr: any;
+            for (const key of [directusField, directusField.toUpperCase().slice(0,1)+directusField.slice(1)]) {
+              for (const value of valueVariants) {
+                try {
+                  await (directus as any).request(updateItem('apartments', apartmentId, { [key]: value } as any));
+                  linked = true;
+                  break;
+                } catch (e) { lastErr = e; }
+              }
+              if (linked) break;
+            }
+            if (!linked) throw lastErr;
+          }
+          if (false) {
+            // Try O2M style: set parent FK on each file (directus_files)
             try {
-              await (directus as any).request(updateItem('apartments', apartmentId, { [directusField]: value } as any));
-              linked = true;
-              break;
-            } catch (e) {
-              lastErr = e;
+              const childFkCandidates = ['apartment', 'apartment_id', 'apartments_id', 'apartments'];
+              for (const fid of targetIds) {
+                let updated = false;
+                for (const fk of childFkCandidates) {
+                  try {
+                    await (directus as any).request(updateItem('directus_files', fid, { [fk]: apartmentId } as any));
+                    updated = true;
+                    break;
+                  } catch {}
+                }
+                if (!updated) throw new Error('No matching FK on directus_files to link to apartment');
+              }
+            } catch (o2mErr) {
+              // ignore, fallback to category-only display
             }
           }
-          if (!linked) throw lastErr;
         } catch (linkErr) {
-          console.warn('Linking uploaded files to apartment failed. Falling back to category display.', linkErr);
+          logger.warn('Linking uploaded files to apartment failed. Falling back to category display.', linkErr);
           // Continue: files are uploaded and will be visible by category
         }
       }
@@ -126,7 +170,7 @@ export const MediaUpload = ({ category, title, onUploadSuccess, apartmentId, dir
       loadFiles();
       onUploadSuccess?.();
     } catch (error: any) {
-      console.error('Upload error:', error);
+      logger.error('Upload error', error);
       const status = error?.response?.status;
       const is413 = status === 413 || /\b413\b|payload too large|entity too large/i.test(String(error?.message || ''));
       const desc = is413
@@ -223,25 +267,16 @@ export const MediaUpload = ({ category, title, onUploadSuccess, apartmentId, dir
 
         <div>
           <Label htmlFor={`file-${category}`}>Загрузить файлы</Label>
-          <Input
+          <input
             id={`file-${category}`}
             type="file"
             accept={directusField === 'photos' ? 'image/*' : 'video/*'}
             multiple
             onChange={handleFileUpload}
             disabled={uploading}
-            className="mt-1"
+            className="mt-1 cursor-pointer"
           />
         </div>
-
-        <Button
-          onClick={() => document.getElementById(`file-${category}`)?.click()}
-          disabled={uploading}
-          className="w-full bg-gradient-ocean"
-        >
-          <Upload className="w-4 h-4 mr-2" />
-          {uploading ? "Загрузка..." : "Выбрать файлы"}
-        </Button>
       </div>
 
       {files.length > 0 && (

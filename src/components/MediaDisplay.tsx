@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { directus, DIRECTUS_URL } from "@/integrations/directus/client";
+import { directus, DIRECTUS_URL, DIRECTUS_STATIC_TOKEN } from "@/integrations/directus/client";
 import { readFiles } from '@directus/sdk';
+import { logger } from "@/utils/logger";
 import { 
   Carousel, 
   CarouselContent, 
@@ -30,9 +31,15 @@ interface MediaDisplayProps {
   category?: string;
   fallbackText?: string;
   className?: string;
+  showPhotos?: boolean;
+  showVideos?: boolean;
+  maxPhotos?: number;
+  maxVideos?: number;
+  photoFields?: string[];
+  videoFields?: string[];
 }
 
-export const MediaDisplay = ({ apartmentId, category, useApartmentFields, fallbackText, className }: MediaDisplayProps) => {
+export const MediaDisplay = ({ apartmentId, category, useApartmentFields, fallbackText, className, showPhotos = true, showVideos = true, maxPhotos, maxVideos, photoFields = ['photos'], videoFields = ['video_entrance', 'video_lock'] }: MediaDisplayProps) => {
   const [photos, setPhotos] = useState<MediaFileUI[]>([]);
   const [videos, setVideos] = useState<MediaFileUI[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,41 +52,76 @@ export const MediaDisplay = ({ apartmentId, category, useApartmentFields, fallba
     try {
       if (useApartmentFields && apartmentId) {
         const { readItem } = await import('@directus/sdk');
-        const item: any = await (directus as any).request(readItem('apartments', apartmentId, { fields: ['id', 'photos', 'video_entrance', 'video_lock'] }));
-        const toIds = (value: any) => Array.isArray(value) ? value.map((v: any) => (typeof v === 'string' ? v : v.id)) : (value ? [ (typeof value === 'string' ? value : value.id) ] : []);
-        const photoIds = toIds(item?.photos);
-        const videoIds = [...toIds(item?.video_entrance), ...toIds(item?.video_lock)];
+        const fieldsToFetch = Array.from(new Set(['id', ...photoFields, ...videoFields]));
+        const item: any = await (directus as any).request(readItem('apartments', apartmentId, { 
+          fields: fieldsToFetch
+        }));
+        const extractFileIds = (value: any): string[] => {
+          if (!value) return [];
+          const fromOne = (v: any): string | null => {
+            if (!v) return null;
+            if (typeof v === 'string') return v;
+            if (v?.directus_files_id) {
+              const df = v.directus_files_id;
+              if (typeof df === 'string') return df;
+              if (df?.id) return df.id;
+            }
+            if (v?.id && typeof v.id === 'string') return v.id;
+            return null;
+          };
+          if (Array.isArray(value)) {
+            return value.map(fromOne).filter(Boolean) as string[];
+          }
+          const one = fromOne(value);
+          return one ? [one] : [];
+        };
+        const collectIds = (keys: string[]) => keys.flatMap((k) => extractFileIds(item?.[k]));
+        const photoIds = showPhotos ? collectIds(photoFields) : [];
+        const videoIds = showVideos ? collectIds(videoFields) : [];
+        // Default: show by asset URLs without querying /files (avoids CORS/413 on /files)
         if (photoIds.length) {
-          const list = await directus.request(readFiles({ filter: { id: { _in: photoIds } }, limit: -1 }));
-          setPhotos(list.map((f: any) => ({ id: f.id, filename: f.filename_download, url: `${DIRECTUS_URL}/assets/${f.id}`, file_type: f.type?.startsWith('video/') ? 'video' : 'image', description: f.description || f.filename_download, mime: f.type })));
+          const tokenParam = DIRECTUS_STATIC_TOKEN ? `?access_token=${DIRECTUS_STATIC_TOKEN}` : '';
+          const limited = maxPhotos ? photoIds.slice(0, maxPhotos) : photoIds;
+          setPhotos(limited.map((id: string) => ({ id, filename: id, url: `${DIRECTUS_URL}/assets/${id}${tokenParam}`, file_type: 'image', description: id })));
+          // Opportunistic metadata fetch (non-blocking)
+          try {
+            const list = await directus.request(readFiles({ filter: { id: { _in: photoIds } }, limit: -1 }));
+            setPhotos(list.map((f: any) => ({ id: f.id, filename: f.filename_download, url: `${DIRECTUS_URL}/assets/${f.id}${tokenParam}`, file_type: f.type?.startsWith('video/') ? 'video' : 'image', description: f.description || f.filename_download, mime: f.type })));
+          } catch {}
         } else {
           setPhotos([]);
         }
         if (videoIds.length) {
-          const list = await directus.request(readFiles({ filter: { id: { _in: videoIds } }, limit: -1 }));
-          setVideos(list.map((f: any) => ({ id: f.id, filename: f.filename_download, url: `${DIRECTUS_URL}/assets/${f.id}`, file_type: f.type?.startsWith('video/') ? 'video' : 'image', description: f.description || f.filename_download, mime: f.type })));
+          const tokenParam = DIRECTUS_STATIC_TOKEN ? `?access_token=${DIRECTUS_STATIC_TOKEN}` : '';
+          const limitedV = maxVideos ? videoIds.slice(0, maxVideos) : videoIds;
+          setVideos(limitedV.map((id: string) => ({ id, filename: id, url: `${DIRECTUS_URL}/assets/${id}${tokenParam}`, file_type: 'video', description: id })));
+          try {
+            const list = await directus.request(readFiles({ filter: { id: { _in: videoIds } }, limit: -1 }));
+            setVideos(list.map((f: any) => ({ id: f.id, filename: f.filename_download, url: `${DIRECTUS_URL}/assets/${f.id}${tokenParam}`, file_type: f.type?.startsWith('video/') ? 'video' : 'image', description: f.description || f.filename_download, mime: f.type })));
+          } catch {}
         } else {
           setVideos([]);
         }
-        // If nothing linked in fields, fallback to category-based lookup
-        if (photoIds.length === 0 && videoIds.length === 0) {
+        // If nothing linked in fields, optionally fallback to category-based lookup (only when category provided)
+        if (category && photoIds.length === 0 && videoIds.length === 0) {
           await loadByCategory();
         }
       } else {
-        await loadByCategory();
+        // No apartment binding; use category fallback only if provided
+        if (category) await loadByCategory();
       }
     } catch (error: any) {
-      console.error('Error loading media:', error);
+      logger.error('Error loading media', error);
       const status = error?.response?.status;
       const cors = /CORS|Cross-Origin/i.test(String(error?.message || ''));
       if (status === 413) {
-        console.error('Directus returned 413 (Payload Too Large). Increase client_max_body_size and Directus upload limits.');
+        logger.error('Directus returned 413 (Payload Too Large). Increase client_max_body_size and Directus upload limits.');
       }
       if (cors) {
-        console.error('CORS appears to be misconfigured. Allow http://localhost:8080 in Directus CORS settings.');
+        logger.error('CORS appears to be misconfigured. Allow http://localhost:8080 in Directus CORS settings.');
       }
-      // On error with fields, also try category fallback
-      await loadByCategory();
+      // On error with fields, try category fallback only if provided
+      if (category) await loadByCategory();
     } finally {
       setLoading(false);
     }
@@ -93,11 +135,12 @@ export const MediaDisplay = ({ apartmentId, category, useApartmentFields, fallba
         directus.request(readFiles({ filter: { title: { _eq: photoCategory } }, sort: ['-date_created'] })),
         directus.request(readFiles({ filter: { title: { _eq: videoCategory } }, sort: ['-date_created'] })),
       ]);
-      if (photoFiles) {
-        setPhotos(photoFiles.map((f: any) => ({ id: f.id, filename: f.filename_download, url: `${DIRECTUS_URL}/assets/${f.id}`, file_type: f.type?.startsWith('video/') ? 'video' : 'image', description: f.description || f.filename_download, mime: f.type })));
+      const tokenParam = DIRECTUS_STATIC_TOKEN ? `?access_token=${DIRECTUS_STATIC_TOKEN}` : '';
+      if (Array.isArray(photoFiles) && photoFiles.length) {
+        setPhotos(photoFiles.map((f: any) => ({ id: f.id, filename: f.filename_download, url: `${DIRECTUS_URL}/assets/${f.id}${tokenParam}`, file_type: f.type?.startsWith('video/') ? 'video' : 'image', description: f.description || f.filename_download, mime: f.type })));
       }
-      if (videoFiles) {
-        setVideos(videoFiles.map((f: any) => ({ id: f.id, filename: f.filename_download, url: `${DIRECTUS_URL}/assets/${f.id}`, file_type: f.type?.startsWith('video/') ? 'video' : 'image', description: f.description || f.filename_download, mime: f.type })));
+      if (Array.isArray(videoFiles) && videoFiles.length) {
+        setVideos(videoFiles.map((f: any) => ({ id: f.id, filename: f.filename_download, url: `${DIRECTUS_URL}/assets/${f.id}${tokenParam}`, file_type: f.type?.startsWith('video/') ? 'video' : 'image', description: f.description || f.filename_download, mime: f.type })));
       }
     } catch (e) {
       // ignore

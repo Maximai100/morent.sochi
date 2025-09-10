@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
+import { logger } from "@/utils/logger";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,18 +9,21 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MediaUpload } from "@/components/MediaUpload";
 import { useFormValidation, validationRules } from "@/components/FormValidation";
-import { Copy, Share, Settings, AlertCircle, ArrowLeft, ExternalLink, Edit, Trash2, Plus } from "lucide-react";
+import { Copy, Share, Settings, AlertCircle, ArrowLeft, ExternalLink, Edit, Trash2, Plus, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { directus, ApartmentRecord, BookingRecord, DIRECTUS_URL } from "@/integrations/directus/client";
 import { readItems, readItem, createItem, updateItem, deleteItem } from '@directus/sdk';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { format, parse } from "date-fns";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { format } from "date-fns";
+import { formatDateForAPI, formatDateForDisplay, parseAPIDate, parseDisplayDate } from "@/utils/date";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 const ManagerPanel = () => {
   const { toast } = useToast();
+  const { logout } = useAuth();
   const [apartments, setApartments] = useState<Array<{ id: string; name: string; number: string; entrance_code: string | null; lock_code: string | null; wifi_password: string | null; address?: string | null; description?: string | null }>>([]);
   const [formData, setFormData] = useState({
     apartmentId: '',
@@ -57,7 +61,7 @@ const ManagerPanel = () => {
   useEffect(() => {
     const load = async () => {
       // quick probe to see URL used (token is not logged)
-      console.debug('Directus URL:', DIRECTUS_URL);
+      logger.debug('Directus URL:', DIRECTUS_URL);
       try {
         const items = await directus.request(readItems<ApartmentRecord>('apartments', {
           sort: ['-date_created'],
@@ -89,7 +93,7 @@ const ManagerPanel = () => {
           }
         }
       } catch (e) {
-        console.error(e);
+        logger.error('Failed to load apartments', e);
         toast({ title: 'Не удалось загрузить апартаменты из Directus', variant: 'destructive' });
       }
     };
@@ -176,21 +180,9 @@ const ManagerPanel = () => {
     }
 
     try {
-      const toDirectusDate = (value: string): string | undefined => {
-        if (!value) return undefined;
-        try {
-          const parsed = parse(value, 'dd.MM.yyyy', new Date());
-          if (isNaN(parsed.getTime())) return undefined;
-          // Send ISO date (YYYY-MM-DD) to Directus
-          return format(parsed, 'yyyy-MM-dd');
-        } catch {
-          return undefined;
-        }
-      };
-
       // Try several schema variants for field names
-      const checkinIso = toDirectusDate(formData.checkIn);
-      const checkoutIso = toDirectusDate(formData.checkOut);
+      const checkinIso = formatDateForAPI(formData.checkIn);
+      const checkoutIso = formatDateForAPI(formData.checkOut);
       let created: any | null = null;
       const variants: Array<Record<string, any>> = [
         { apartment_id: formData.apartmentId, guest_name: formData.guestName, checkin_date: checkinIso, checkout_date: checkoutIso },
@@ -220,9 +212,9 @@ const ManagerPanel = () => {
       // Try to surface Directus error details for easier debugging
       const details = e?.errors?.[0];
       const message = details?.message || e?.message || 'Не удалось создать бронирование';
-      console.error('Create booking error:', e);
+      logger.error('Create booking error', e);
       if (e?.response && typeof e.response.json === 'function') {
-        try { e.response.json().then((j: any) => console.error('Directus error body:', j)); } catch {}
+        try { e.response.json().then((j: any) => logger.error('Directus error body', j)); } catch {}
       }
       toast({ title: "Ошибка", description: message, variant: "destructive" });
     }
@@ -235,18 +227,8 @@ const ManagerPanel = () => {
       return;
     }
     try {
-      const toDirectusDate = (value: string): string | undefined => {
-        if (!value) return undefined;
-        try {
-          const parsed = parse(value, 'dd.MM.yyyy', new Date());
-          if (isNaN(parsed.getTime())) return undefined;
-          return format(parsed, 'yyyy-MM-dd');
-        } catch {
-          return undefined;
-        }
-      };
-      const checkinIso = toDirectusDate(formData.checkIn);
-      const checkoutIso = toDirectusDate(formData.checkOut);
+      const checkinIso = formatDateForAPI(formData.checkIn);
+      const checkoutIso = formatDateForAPI(formData.checkOut);
       const variants: Array<Record<string, any>> = [
         { guest_name: formData.guestName, checkin_date: checkinIso, checkout_date: checkoutIso },
         { guest_name: formData.guestName, check_in_date: checkinIso, check_out_date: checkoutIso },
@@ -271,7 +253,7 @@ const ManagerPanel = () => {
     } catch (e: any) {
       const details = e?.errors?.[0];
       const message = details?.message || e?.message || 'Не удалось обновить бронирование';
-      console.error('Update booking error:', e);
+      logger.error('Update booking error', e);
       toast({ title: 'Ошибка', description: message, variant: 'destructive' });
     }
   };
@@ -292,32 +274,17 @@ const ManagerPanel = () => {
     // set apartment selection to booking's apartment for clarity
     updateFormData('apartmentId', b.apartment_id);
     // fill form fields
-    const toDisplay = (v?: string) => {
-      if (!v) return '';
-      // try yyyy-MM-dd
-      try {
-        const d = parse(v, 'yyyy-MM-dd', new Date());
-        if (!isNaN(d.getTime())) return format(d, 'dd.MM.yyyy');
-      } catch {}
-      return v;
-    };
     setFormData(prev => ({
       ...prev,
       guestName: b.guest_name || '',
-      checkIn: toDisplay(b.check_in_date),
-      checkOut: toDisplay(b.check_out_date),
+      checkIn: formatDateForDisplay(b.check_in_date),
+      checkOut: formatDateForDisplay(b.check_out_date),
     }));
     // update calendar pickers
-    try {
-      if (b.check_in_date) {
-        const d = parse(b.check_in_date, 'yyyy-MM-dd', new Date());
-        if (!isNaN(d.getTime())) setCheckInDate(d);
-      }
-      if (b.check_out_date) {
-        const d2 = parse(b.check_out_date, 'yyyy-MM-dd', new Date());
-        if (!isNaN(d2.getTime())) setCheckOutDate(d2);
-      }
-    } catch {}
+    const checkInParsed = parseAPIDate(b.check_in_date || '');
+    const checkOutParsed = parseAPIDate(b.check_out_date || '');
+    if (checkInParsed) setCheckInDate(checkInParsed);
+    if (checkOutParsed) setCheckOutDate(checkOutParsed);
   };
 
   const saveApartment = async () => {
@@ -439,10 +406,11 @@ const ManagerPanel = () => {
       <div className="max-w-6xl mx-auto">
         <Card className="p-8 shadow-ocean">
           <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-              <Settings className="w-8 h-8 text-primary" />
-              <h1 className="text-3xl font-bold font-playfair text-primary uppercase">Панель менеджера MORENT</h1>
-            </div>
+          <div className="flex items-center gap-3">
+            <Settings className="w-8 h-8 text-primary" />
+            <h1 className="text-3xl font-bold font-playfair text-primary uppercase">Панель менеджера MORENT</h1>
+          </div>
+          <div className="flex items-center gap-2">
             <Button 
               variant="outline" 
               onClick={() => window.location.href = '/'}
@@ -451,6 +419,15 @@ const ManagerPanel = () => {
               <ArrowLeft className="w-4 h-4" />
               На главную
             </Button>
+            <Button 
+              variant="outline" 
+              onClick={logout}
+              className="flex items-center gap-2"
+            >
+              <LogOut className="w-4 h-4" />
+              Выйти
+            </Button>
+          </div>
           </div>
 
           <Tabs defaultValue="guest-data" className="w-full">
@@ -723,108 +700,110 @@ const ManagerPanel = () => {
                 ))}
               </div>
               <Dialog open={showApartmentForm} onOpenChange={setShowApartmentForm}>
-                <DialogContent className="max-w-4xl">
-                  <DialogHeader>
+                <DialogContent className="max-w-4xl max-h-[85vh] p-0 flex flex-col">
+                  <DialogHeader className="px-6 pt-6">
                     <DialogTitle>{selectedApartment?.id ? 'Редактировать апартамент' : 'Новый апартамент'}</DialogTitle>
+                    <DialogDescription>Заполните поля карточки апартамента и прикрепите медиа.</DialogDescription>
                   </DialogHeader>
-                  <Tabs defaultValue="main" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3 mb-4">
-                      <TabsTrigger value="main">Основное</TabsTrigger>
-                      <TabsTrigger value="content">Контент</TabsTrigger>
-                      <TabsTrigger value="media">Медиа</TabsTrigger>
-                    </TabsList>
+                  <div className="flex-1 overflow-y-auto px-6 pb-2">
+                    <Tabs defaultValue="main" className="w-full">
+                      <TabsList className="grid w-full grid-cols-3 mb-4">
+                        <TabsTrigger value="main">Основное</TabsTrigger>
+                        <TabsTrigger value="content">Контент</TabsTrigger>
+                        <TabsTrigger value="media">Медиа</TabsTrigger>
+                      </TabsList>
 
-                    <TabsContent value="main">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label>Название</Label>
-                          <Input value={apartmentForm.name} onChange={(e) => setApartmentForm({ ...apartmentForm, name: e.target.value })} placeholder="Апартаменты у моря" />
+                      <TabsContent value="main">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label>Название</Label>
+                            <Input value={apartmentForm.name} onChange={(e) => setApartmentForm({ ...apartmentForm, name: e.target.value })} placeholder="Апартаменты у моря" />
+                          </div>
+                          <div>
+                            <Label>Номер</Label>
+                            <Input value={apartmentForm.number} onChange={(e) => setApartmentForm({ ...apartmentForm, number: e.target.value })} placeholder="169" />
+                          </div>
+                          <div className="md:col-span-2">
+                            <Label>Описание</Label>
+                            <Textarea value={apartmentForm.description} onChange={(e) => setApartmentForm({ ...apartmentForm, description: e.target.value })} />
+                          </div>
+                          <div className="md:col-span-2">
+                            <Label>Адрес</Label>
+                            <Input value={apartmentForm.address} onChange={(e) => setApartmentForm({ ...apartmentForm, address: e.target.value })} placeholder="Нагорный тупик 13" />
+                          </div>
+                          <div>
+                            <Label>Wi-Fi пароль</Label>
+                            <Input value={apartmentForm.wifi_password} onChange={(e) => setApartmentForm({ ...apartmentForm, wifi_password: e.target.value })} placeholder="логин/пароль" />
+                          </div>
+                          <div>
+                            <Label>Код подъезда</Label>
+                            <Input value={apartmentForm.entrance_code} onChange={(e) => setApartmentForm({ ...apartmentForm, entrance_code: e.target.value })} placeholder="#2020" />
+                          </div>
+                          <div>
+                            <Label>Код замка</Label>
+                            <Input value={apartmentForm.lock_code} onChange={(e) => setApartmentForm({ ...apartmentForm, lock_code: e.target.value })} placeholder="1111" />
+                          </div>
                         </div>
-                        <div>
-                          <Label>Номер</Label>
-                          <Input value={apartmentForm.number} onChange={(e) => setApartmentForm({ ...apartmentForm, number: e.target.value })} placeholder="169" />
-                        </div>
-                        <div className="md:col-span-2">
-                          <Label>Описание</Label>
-                          <Textarea value={apartmentForm.description} onChange={(e) => setApartmentForm({ ...apartmentForm, description: e.target.value })} />
-                        </div>
-                        <div className="md:col-span-2">
-                          <Label>Адрес</Label>
-                          <Input value={apartmentForm.address} onChange={(e) => setApartmentForm({ ...apartmentForm, address: e.target.value })} placeholder="Нагорный тупик 13" />
-                        </div>
-                        <div>
-                          <Label>Wi-Fi пароль</Label>
-                          <Input value={apartmentForm.wifi_password} onChange={(e) => setApartmentForm({ ...apartmentForm, wifi_password: e.target.value })} placeholder="логин/пароль" />
-                        </div>
-                        <div>
-                          <Label>Код подъезда</Label>
-                          <Input value={apartmentForm.entrance_code} onChange={(e) => setApartmentForm({ ...apartmentForm, entrance_code: e.target.value })} placeholder="#2020" />
-                        </div>
-                        <div>
-                          <Label>Код замка</Label>
-                          <Input value={apartmentForm.lock_code} onChange={(e) => setApartmentForm({ ...apartmentForm, lock_code: e.target.value })} placeholder="1111" />
-                        </div>
-                      </div>
-                    </TabsContent>
+                      </TabsContent>
 
-                    <TabsContent value="content">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label>Имя менеджера</Label>
-                          <Input value={apartmentForm.manager_name} onChange={(e) => setApartmentForm({ ...apartmentForm, manager_name: e.target.value })} />
+                      <TabsContent value="content">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label>Имя менеджера</Label>
+                            <Input value={apartmentForm.manager_name} onChange={(e) => setApartmentForm({ ...apartmentForm, manager_name: e.target.value })} />
+                          </div>
+                          <div>
+                            <Label>Телефон</Label>
+                            <Input value={apartmentForm.manager_phone} onChange={(e) => setApartmentForm({ ...apartmentForm, manager_phone: e.target.value })} />
+                          </div>
+                          <div className="md:col-span-2">
+                            <Label>Email</Label>
+                            <Input value={apartmentForm.manager_email} onChange={(e) => setApartmentForm({ ...apartmentForm, manager_email: e.target.value })} />
+                          </div>
+                          <div className="md:col-span-2">
+                            <Label>FAQ: Заселение</Label>
+                            <Textarea rows={3} value={apartmentForm.faq_checkin} onChange={(e) => setApartmentForm({ ...apartmentForm, faq_checkin: e.target.value })} />
+                          </div>
+                          <div className="md:col-span-2">
+                            <Label>FAQ: Апартаменты</Label>
+                            <Textarea rows={3} value={apartmentForm.faq_apartment} onChange={(e) => setApartmentForm({ ...apartmentForm, faq_apartment: e.target.value })} />
+                          </div>
+                          <div className="md:col-span-2">
+                            <Label>FAQ: Территория</Label>
+                            <Textarea rows={3} value={apartmentForm.faq_area} onChange={(e) => setApartmentForm({ ...apartmentForm, faq_area: e.target.value })} />
+                          </div>
+                          <div className="md:col-span-2">
+                            <Label>Код встраивания Яндекс.Карт</Label>
+                            <Textarea rows={3} value={apartmentForm.map_embed_code} onChange={(e) => setApartmentForm({ ...apartmentForm, map_embed_code: e.target.value })} />
+                          </div>
                         </div>
-                        <div>
-                          <Label>Телефон</Label>
-                          <Input value={apartmentForm.manager_phone} onChange={(e) => setApartmentForm({ ...apartmentForm, manager_phone: e.target.value })} />
-                        </div>
-                        <div className="md:col-span-2">
-                          <Label>Email</Label>
-                          <Input value={apartmentForm.manager_email} onChange={(e) => setApartmentForm({ ...apartmentForm, manager_email: e.target.value })} />
-                        </div>
-                        <div className="md:col-span-2">
-                          <Label>FAQ: Заселение</Label>
-                          <Textarea rows={3} value={apartmentForm.faq_checkin} onChange={(e) => setApartmentForm({ ...apartmentForm, faq_checkin: e.target.value })} />
-                        </div>
-                        <div className="md:col-span-2">
-                          <Label>FAQ: Апартаменты</Label>
-                          <Textarea rows={3} value={apartmentForm.faq_apartment} onChange={(e) => setApartmentForm({ ...apartmentForm, faq_apartment: e.target.value })} />
-                        </div>
-                        <div className="md:col-span-2">
-                          <Label>FAQ: Территория</Label>
-                          <Textarea rows={3} value={apartmentForm.faq_area} onChange={(e) => setApartmentForm({ ...apartmentForm, faq_area: e.target.value })} />
-                        </div>
-                        <div className="md:col-span-2">
-                          <Label>Код встраивания Яндекс.Карт</Label>
-                          <Textarea rows={3} value={apartmentForm.map_embed_code} onChange={(e) => setApartmentForm({ ...apartmentForm, map_embed_code: e.target.value })} />
-                        </div>
-                      </div>
-                    </TabsContent>
+                      </TabsContent>
 
-                    <TabsContent value="media">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <TabsContent value="media">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <MediaUpload
-                          apartmentId={selectedApartment?.id!}
-                          directusField="photos"
-                          multiple
-                          title="Фотографии апартамента"
-                          onUploadSuccess={() => {}}
-                        />
+                            apartmentId={selectedApartment?.id!}
+                            directusField="photos"
+                            title="Фотографии апартамента"
+                            onUploadSuccess={() => {}}
+                          />
                         <MediaUpload
-                          apartmentId={selectedApartment?.id!}
-                          directusField="video_entrance"
-                          title="Видео подъезда"
-                          onUploadSuccess={() => {}}
-                        />
+                            apartmentId={selectedApartment?.id!}
+                            directusField="video_entrance"
+                            title="Видео подъезда"
+                            onUploadSuccess={() => {}}
+                          />
                         <MediaUpload
-                          apartmentId={selectedApartment?.id!}
-                          directusField="video_lock"
-                          title="Видео электронного замка"
-                          onUploadSuccess={() => {}}
-                        />
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-                  <div className="flex gap-2 pt-4">
+                            apartmentId={selectedApartment?.id!}
+                            directusField="video_lock"
+                            title="Видео электронного замка"
+                            onUploadSuccess={() => {}}
+                          />
+                        </div>
+                      </TabsContent>
+                    </Tabs>
+                  </div>
+                  <div className="flex gap-2 p-6 border-t bg-background">
                     <Button onClick={saveApartment} className="flex-1">{selectedApartment?.id ? 'Обновить' : 'Создать'}</Button>
                     <Button variant="outline" className="flex-1" onClick={() => setShowApartmentForm(false)}>Отмена</Button>
                   </div>
