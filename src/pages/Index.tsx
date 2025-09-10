@@ -6,15 +6,15 @@ import "@/styles/minimal-guest.css";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4 guest-minimal">
-      <Card className="w-full max-w-4xl mx-auto shadow-premium text-center">
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+      <Card className="w-full max-w-4xl mx-auto shadow-lg border border-slate-200">
         <div className="p-6 md:p-8">
           <div className="mb-8">
-            <h1 className="text-4xl md:text-6xl font-bold text-[hsl(var(--guest-navy))] mb-4 tracking-wider font-playfair">
+            <h1 className="text-4xl md:text-6xl font-bold text-slate-800 mb-4 tracking-wider font-playfair">
               MORENT
             </h1>
-            <div className="w-24 h-1 bg-[hsl(var(--guest-navy))] rounded-full mx-auto mb-4" />
-            <p className="text-lg md:text-xl text-[hsl(var(--guest-silver))] font-inter font-medium">
+            <div className="w-24 h-1 bg-slate-800 rounded-full mx-auto mb-4" />
+            <p className="text-lg md:text-xl text-slate-600 font-inter font-medium">
               Система управления инструкциями заселения
             </p>
           </div>
@@ -23,7 +23,7 @@ const Index = () => {
             <Link to="/manager" className="group">
               <Button 
                 variant="outline" 
-                className="w-full h-auto p-6 border-2 border-[hsl(var(--guest-navy))] hover:bg-[hsl(var(--guest-navy))] hover:text-white transition-all duration-300 flex flex-col gap-3"
+                className="w-full h-auto p-6 border-2 border-slate-800 hover:bg-slate-800 hover:text-white transition-all duration-300 flex flex-col gap-3"
               >
                 <Settings className="w-12 h-12" />
                 <div>
@@ -36,7 +36,7 @@ const Index = () => {
             <Link to="/guide" className="group">
               <Button 
                 variant="outline" 
-                className="w-full h-auto p-6 border-2 border-[hsl(var(--guest-navy))] hover:bg-[hsl(var(--guest-navy))] hover:text-white transition-all duration-300 flex flex-col gap-3"
+                className="w-full h-auto p-6 border-2 border-slate-800 hover:bg-slate-800 hover:text-white transition-all duration-300 flex flex-col gap-3"
               >
                 <FileText className="w-12 h-12" />
                 <div>
@@ -47,12 +47,12 @@ const Index = () => {
             </Link>
           </div>
 
-          <div className="p-4 border border-[hsl(var(--guest-navy))]/20 rounded-lg bg-gray-50">
+          <div className="p-4 border border-slate-300 rounded-lg bg-slate-50">
             <div className="flex items-center justify-center gap-2 mb-2">
-              <Map className="w-5 h-5 text-[hsl(var(--guest-navy))]" />
-              <p className="text-base font-semibold font-playfair text-[hsl(var(--guest-navy))]">Сочи • Апартаменты у моря</p>
+              <Map className="w-5 h-5 text-slate-800" />
+              <p className="text-base font-semibold font-playfair text-slate-800">Сочи • Апартаменты у моря</p>
             </div>
-            <p className="text-sm text-[hsl(var(--guest-silver))] font-inter">
+            <p className="text-sm text-slate-600 font-inter">
               Ваш дом у моря в любой момент!
             </p>
           </div>

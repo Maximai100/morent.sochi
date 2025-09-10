@@ -20,8 +20,7 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { formatDateForAPI, formatDateForDisplay, parseAPIDate, parseDisplayDate } from "@/utils/date";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-// Временно отключены мобильные стили для отладки
-// import "@/styles/manager-mobile.css";
+import "@/styles/manager-mobile.css";
 
 const ManagerPanel = () => {
   const { toast } = useToast();
@@ -172,25 +171,52 @@ const ManagerPanel = () => {
   };
 
   const createBooking = async () => {
+    // Валидация данных
     if (!formData.apartmentId) {
       toast({ title: "Выберите апартамент", variant: "destructive" });
       return;
     }
-    if (!formData.guestName || !formData.checkIn || !formData.checkOut) {
-      toast({ title: "Заполните ФИО и даты", variant: "destructive" });
+    if (!formData.guestName.trim()) {
+      toast({ title: "Введите имя гостя", variant: "destructive" });
+      return;
+    }
+    if (!formData.checkIn) {
+      toast({ title: "Выберите дату заезда", variant: "destructive" });
+      return;
+    }
+    if (!formData.checkOut) {
+      toast({ title: "Выберите дату выезда", variant: "destructive" });
+      return;
+    }
+
+    // Проверка дат
+    const checkInParsed = parseDisplayDate(formData.checkIn);
+    const checkOutParsed = parseDisplayDate(formData.checkOut);
+    
+    if (!checkInParsed || !checkOutParsed) {
+      toast({ title: "Неверный формат дат", description: "Используйте формат ДД.ММ.ГГГГ", variant: "destructive" });
+      return;
+    }
+
+    if (checkOutParsed <= checkInParsed) {
+      toast({ title: "Дата выезда должна быть позже даты заезда", variant: "destructive" });
       return;
     }
 
     try {
-      // Try several schema variants for field names
       const checkinIso = formatDateForAPI(formData.checkIn);
       const checkoutIso = formatDateForAPI(formData.checkOut);
+      
+      if (!checkinIso || !checkoutIso) {
+        throw new Error('Ошибка преобразования дат');
+      }
+
       let created: any | null = null;
       const variants: Array<Record<string, any>> = [
-        { apartment_id: formData.apartmentId, guest_name: formData.guestName, checkin_date: checkinIso, checkout_date: checkoutIso },
-        { apartment: formData.apartmentId, guest_name: formData.guestName, checkin_date: checkinIso, checkout_date: checkoutIso },
-        { apartment_id: formData.apartmentId, guest_name: formData.guestName, check_in_date: checkinIso, check_out_date: checkoutIso },
-        { apartment: formData.apartmentId, guest_name: formData.guestName, check_in_date: checkinIso, check_out_date: checkoutIso },
+        { apartment_id: formData.apartmentId, guest_name: formData.guestName.trim(), checkin_date: checkinIso, checkout_date: checkoutIso },
+        { apartment: formData.apartmentId, guest_name: formData.guestName.trim(), checkin_date: checkinIso, checkout_date: checkoutIso },
+        { apartment_id: formData.apartmentId, guest_name: formData.guestName.trim(), check_in_date: checkinIso, check_out_date: checkoutIso },
+        { apartment: formData.apartmentId, guest_name: formData.guestName.trim(), check_in_date: checkinIso, check_out_date: checkoutIso },
       ];
 
       let lastError: any;
@@ -198,65 +224,137 @@ const ManagerPanel = () => {
         try {
           // strip undefined/null values to avoid validation issues
           const compact = Object.fromEntries(Object.entries(payload).filter(([, v]) => v !== undefined && v !== null && v !== ''));
+          logger.debug('Trying to create booking with payload:', compact);
           created = await directus.request(createItem('bookings', compact));
+          logger.debug('Booking created successfully:', created);
           break;
         } catch (err) {
           lastError = err;
+          logger.debug('Variant failed:', payload, err);
         }
       }
       if (!created) throw lastError;
 
       await loadBookings();
-      const link = generateGuestLink();
-      await navigator.clipboard.writeText(link);
-      toast({ title: "Бронирование создано", description: "Ссылка скопирована в буфер обмена" });
+      
+      try {
+        const link = generateGuestLink();
+        await navigator.clipboard.writeText(link);
+        toast({ title: "Бронирование создано", description: "Ссылка скопирована в буфер обмена" });
+      } catch (clipboardError) {
+        // Если не удалось скопировать в буфер, всё равно считаем успехом
+        toast({ title: "Бронирование создано", description: "Не удалось скопировать ссылку автоматически" });
+      }
+      
     } catch (e: any) {
       // Try to surface Directus error details for easier debugging
       const details = e?.errors?.[0];
-      const message = details?.message || e?.message || 'Не удалось создать бронирование';
+      let message = details?.message || e?.message || 'Не удалось создать бронирование';
+      
+      // Улучшенная обработка специфических ошибок
+      if (message.includes('UNIQUE')) {
+        message = 'Бронирование с такими данными уже существует';
+      } else if (message.includes('FOREIGN_KEY')) {
+        message = 'Выбранный апартамент не найден';
+      } else if (message.includes('NOT_NULL')) {
+        message = 'Не все обязательные поля заполнены';
+      }
+      
       logger.error('Create booking error', e);
       if (e?.response && typeof e.response.json === 'function') {
         try { e.response.json().then((j: any) => logger.error('Directus error body', j)); } catch {}
       }
-      toast({ title: "Ошибка", description: message, variant: "destructive" });
+      toast({ title: "Ошибка создания бронирования", description: message, variant: "destructive" });
     }
   };
 
   const updateBooking = async () => {
     if (!editingBookingId) return;
-    if (!formData.guestName || !formData.checkIn || !formData.checkOut) {
-      toast({ title: "Заполните ФИО и даты", variant: "destructive" });
+    
+    // Валидация данных
+    if (!formData.guestName.trim()) {
+      toast({ title: "Введите имя гостя", variant: "destructive" });
       return;
     }
+    if (!formData.checkIn) {
+      toast({ title: "Выберите дату заезда", variant: "destructive" });
+      return;
+    }
+    if (!formData.checkOut) {
+      toast({ title: "Выберите дату выезда", variant: "destructive" });
+      return;
+    }
+
+    // Проверка дат
+    const checkInParsed = parseDisplayDate(formData.checkIn);
+    const checkOutParsed = parseDisplayDate(formData.checkOut);
+    
+    if (!checkInParsed || !checkOutParsed) {
+      toast({ title: "Неверный формат дат", description: "Используйте формат ДД.ММ.ГГГГ", variant: "destructive" });
+      return;
+    }
+
+    if (checkOutParsed <= checkInParsed) {
+      toast({ title: "Дата выезда должна быть позже даты заезда", variant: "destructive" });
+      return;
+    }
+
     try {
       const checkinIso = formatDateForAPI(formData.checkIn);
       const checkoutIso = formatDateForAPI(formData.checkOut);
+      
+      if (!checkinIso || !checkoutIso) {
+        throw new Error('Ошибка преобразования дат');
+      }
+
       const variants: Array<Record<string, any>> = [
-        { guest_name: formData.guestName, checkin_date: checkinIso, checkout_date: checkoutIso },
-        { guest_name: formData.guestName, check_in_date: checkinIso, check_out_date: checkoutIso },
+        { guest_name: formData.guestName.trim(), checkin_date: checkinIso, checkout_date: checkoutIso },
+        { guest_name: formData.guestName.trim(), check_in_date: checkinIso, check_out_date: checkoutIso },
       ];
       let success = false;
       let lastError: any;
       for (const payload of variants) {
         try {
           const compact = Object.fromEntries(Object.entries(payload).filter(([, v]) => v !== undefined && v !== null && v !== ''));
+          logger.debug('Trying to update booking with payload:', compact);
           await directus.request(updateItem('bookings', editingBookingId, compact as any));
           success = true;
           break;
         } catch (err) {
           lastError = err;
+          logger.debug('Update variant failed:', payload, err);
         }
       }
       if (!success) throw lastError;
 
       await loadBookings();
       setEditingBookingId(null);
+      
+      // Очистка формы после успешного обновления
+      setFormData(prev => ({
+        ...prev,
+        guestName: '',
+        checkIn: '',
+        checkOut: '',
+        electronicLockCode: ''
+      }));
+      setCheckInDate(undefined);
+      setCheckOutDate(undefined);
+      
       toast({ title: 'Бронирование обновлено' });
     } catch (e: any) {
       const details = e?.errors?.[0];
-      const message = details?.message || e?.message || 'Не удалось обновить бронирование';
+      let message = details?.message || e?.message || 'Не удалось обновить бронирование';
+      
+      // Улучшенная обработка специфических ошибок
+      if (message.includes('UNIQUE')) {
+        message = 'Бронирование с такими данными уже существует';
+      } else if (message.includes('NOT_NULL')) {
+        message = 'Не все обязательные поля заполнены';
+      }
+      
       logger.error('Update booking error', e);
-      toast({ title: 'Ошибка', description: message, variant: 'destructive' });
+      toast({ title: 'Ошибка обновления', description: message, variant: 'destructive' });
     }
   };
 
@@ -404,7 +502,7 @@ const ManagerPanel = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-wave p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-wave p-4 md:p-6 manager-mobile">
       <div className="max-w-6xl mx-auto">
         <Card className="p-4 md:p-8 shadow-ocean">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 md:mb-8 gap-4 sm:gap-0">
@@ -434,13 +532,13 @@ const ManagerPanel = () => {
           </div>
 
           <Tabs defaultValue="guest-data" className="w-full">
-            <TabsList className="grid w-full tabs-list-mobile">
-              <TabsTrigger value="guest-data" className="flex items-center gap-2">
+            <TabsList className="grid w-full tabs-list-mobile grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-0 h-auto p-1">
+              <TabsTrigger value="guest-data" className="flex items-center gap-2 tabs-trigger-mobile justify-center py-3">
                 <Settings className="w-4 h-4" />
                 <span className="hidden sm:inline">Данные гостя</span>
                 <span className="sm:hidden">Гость</span>
               </TabsTrigger>
-              <TabsTrigger value="apartments" className="flex items-center gap-2">
+              <TabsTrigger value="apartments" className="flex items-center gap-2 tabs-trigger-mobile justify-center py-3">
                 <ExternalLink className="w-4 h-4" />
                 <span className="hidden sm:inline">Апартаменты</span>
                 <span className="sm:hidden">Квартиры</span>
@@ -448,9 +546,9 @@ const ManagerPanel = () => {
             </TabsList>
 
             <TabsContent value="guest-data" className="space-y-6 mt-6">
-              <div className="grid md:grid-cols-2 gap-4 md:gap-8">
+              <div className="grid md:grid-cols-2 gap-4 md:gap-8 guest-form-grid">
                 {/* Form Section */}
-                <div className="space-y-4 md:space-y-6">
+                <div className="space-y-4 md:space-y-6 form-section">
                   <h2 className="text-xl font-semibold font-playfair text-primary border-b border-border pb-2 uppercase">
                     Данные для гостя
                   </h2>
@@ -497,7 +595,7 @@ const ManagerPanel = () => {
                               {checkInDate ? format(checkInDate, 'dd.MM.yyyy') : 'Выбрать дату'}
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="p-0">
+                          <PopoverContent className="p-0 w-auto max-w-[95vw] sm:w-auto sm:max-w-none">
                             <Calendar
                               mode="single"
                               selected={checkInDate}
@@ -505,6 +603,7 @@ const ManagerPanel = () => {
                                 setCheckInDate(d);
                                 if (d) updateFormData('checkIn', format(d, 'dd.MM.yyyy'));
                               }}
+                              className="mobile-calendar"
                             />
                           </PopoverContent>
                         </Popover>
@@ -524,7 +623,7 @@ const ManagerPanel = () => {
                               {checkOutDate ? format(checkOutDate, 'dd.MM.yyyy') : 'Выбрать дату'}
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="p-0">
+                          <PopoverContent className="p-0 w-auto max-w-[95vw] sm:w-auto sm:max-w-none">
                             <Calendar
                               mode="single"
                               selected={checkOutDate}
@@ -532,6 +631,7 @@ const ManagerPanel = () => {
                                 setCheckOutDate(d);
                                 if (d) updateFormData('checkOut', format(d, 'dd.MM.yyyy'));
                               }}
+                              className="mobile-calendar"
                             />
                           </PopoverContent>
                         </Popover>
@@ -566,7 +666,7 @@ const ManagerPanel = () => {
                 </div>
 
                 {/* Preview, Actions and Bookings List */}
-                <div className="space-y-4 md:space-y-6">
+                <div className="space-y-4 md:space-y-6 link-section">
                   <h2 className="text-xl font-semibold font-playfair text-primary border-b border-border pb-2 uppercase">
                     Ссылка для отправки
                   </h2>
@@ -625,10 +725,10 @@ const ManagerPanel = () => {
                   </Card>
                   <div className="space-y-3">
                     <h3 className="text-xl font-semibold font-playfair text-primary border-b border-border pb-2 uppercase">Текущие бронирования</h3>
-                    <div className="grid grid-cols-1 gap-3">
+                    <div className="grid grid-cols-1 gap-3 bookings-list">
                       {bookings.map((b) => (
-                        <Card key={b.id} className="p-3">
-                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+                        <Card key={b.id} className="p-3 booking-item">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 booking-item-content">
                             <div className="text-left flex-1">
                               <div className="font-medium">{b.guest_name}</div>
                               <div className="text-sm text-muted-foreground">
@@ -637,12 +737,12 @@ const ManagerPanel = () => {
                                 <span className="block sm:inline">Выезд: {b.check_out_date || '-'}</span>
                               </div>
                             </div>
-                            <div className="flex gap-1 w-full sm:w-auto">
-                              <Button variant="ghost" size="sm" onClick={() => startEditBooking(b)} className="flex-1 sm:flex-none">
+                            <div className="flex gap-1 w-full sm:w-auto booking-actions">
+                              <Button variant="ghost" size="sm" onClick={() => startEditBooking(b)} className="flex-1 sm:flex-none touch-target">
                                 <Edit className="w-4 h-4" />
                                 <span className="ml-1 sm:hidden">Изменить</span>
                               </Button>
-                              <Button variant="ghost" size="sm" onClick={() => deleteBooking(b.id)} className="flex-1 sm:flex-none">
+                              <Button variant="ghost" size="sm" onClick={() => deleteBooking(b.id)} className="flex-1 sm:flex-none touch-target">
                                 <Trash2 className="w-4 h-4" />
                                 <span className="ml-1 sm:hidden">Удалить</span>
                               </Button>
@@ -695,19 +795,19 @@ const ManagerPanel = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 apartments-grid">
                 {apartments.map((a) => (
                   <Card key={a.id} className="hover-lift">
-                    <div className="p-4">
+                    <div className="p-4 apartment-card-mobile">
                       <div className="flex items-start justify-between">
                         <div>
-                          <div className="inline-block px-2 py-1 rounded-md border-2 border-gold/60 bg-gold/10 text-gold font-bold tracking-wide text-base mb-1">
+                          <div className="inline-block px-2 py-1 rounded-md border-2 border-gold/60 bg-gold/10 text-gold font-bold tracking-wide text-base mb-1 apartment-number">
                             № {a.number}
                           </div>
                           <p className="text-lg font-semibold">{a.name}</p>
                         </div>
                         <div className="flex gap-1">
-                          <Button variant="ghost" size="sm" onClick={() => editApartment(a)}>
+                          <Button variant="ghost" size="sm" onClick={() => editApartment(a)} className="touch-target">
                             <Edit className="w-4 h-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => removeApartment(a.id)}>
+                          <Button variant="ghost" size="sm" onClick={() => removeApartment(a.id)} className="touch-target">
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
@@ -717,6 +817,7 @@ const ManagerPanel = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => window.open(`/apartment/${a.id}`, '_blank')}
+                          className="touch-target"
                         >
                           Открыть страницу гостя
                         </Button>
@@ -731,12 +832,12 @@ const ManagerPanel = () => {
                     <DialogTitle>{selectedApartment?.id ? 'Редактировать апартамент' : 'Новый апартамент'}</DialogTitle>
                     <DialogDescription>Заполните поля карточки апартамента и прикрепите медиа.</DialogDescription>
                   </DialogHeader>
-                  <div className="flex-1 overflow-y-auto px-4 md:px-6 pb-2">
+                  <div className="flex-1 overflow-y-auto px-4 md:px-6 pb-2 dialog-scrollable">
                     <Tabs defaultValue="main" className="w-full">
-                      <TabsList className="grid w-full grid-cols-3 mb-4">
-                        <TabsTrigger value="main">Основное</TabsTrigger>
-                        <TabsTrigger value="content">Контент</TabsTrigger>
-                        <TabsTrigger value="media">Медиа</TabsTrigger>
+                      <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 mb-4 gap-1 h-auto">
+                        <TabsTrigger value="main" className="py-2 sm:py-1">Основное</TabsTrigger>
+                        <TabsTrigger value="content" className="py-2 sm:py-1">Контент</TabsTrigger>
+                        <TabsTrigger value="media" className="py-2 sm:py-1">Медиа</TabsTrigger>
                       </TabsList>
 
                       <TabsContent value="main">

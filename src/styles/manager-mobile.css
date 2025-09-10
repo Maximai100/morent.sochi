@@ -5,6 +5,12 @@
   overflow-x: hidden;
 }
 
+/* Применяем стили к корневому контейнеру панели менеджера */
+.min-h-screen.bg-gradient-wave {
+  position: relative;
+  overflow-x: hidden;
+}
+
 /* Контейнер панели менеджера */
 .manager-mobile .max-w-6xl {
   max-width: 100vw;
@@ -175,5 +181,38 @@
   
   .manager-mobile .p-6 {
     padding: 1rem;
+  }
+}
+
+/* Календарь в мобильной версии */
+.mobile-calendar {
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+@media (max-width: 640px) {
+  .mobile-calendar {
+    max-width: 280px;
+    font-size: 0.875rem;
+  }
+  
+  .mobile-calendar .rdp-month {
+    width: 100%;
+  }
+  
+  .mobile-calendar .rdp-table {
+    width: 100%;
+  }
+  
+  .mobile-calendar .rdp-cell {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .mobile-calendar .rdp-button {
+    width: 30px;
+    height: 30px;
+    font-size: 0.75rem;
   }
 }

@@ -59,39 +59,60 @@ const ApartmentLanding = () => {
   }, [apartmentId]);
 
   const loadApartment = async () => {
-    if (!apartmentId) return;
+    if (!apartmentId) {
+      setLoading(false);
+      return;
+    }
 
     try {
-      const item = await directus.request(readItem<ApartmentRecord>('apartments', apartmentId));
+      logger.debug('Loading apartment:', apartmentId);
+      const item = await directus.request(readItem<ApartmentRecord>('apartments', apartmentId, {
+        fields: ['*'] // Запрашиваем все поля явно
+      } as any));
+      
       if (item) {
+        logger.debug('Apartment loaded successfully:', item);
         const mapped: Apartment = {
           id: item.id,
-          name: item.title || '',
+          name: item.title || `Апартамент №${item.apartment_number || 'N/A'}`,
           number: item.apartment_number || '',
           description: item.description || null,
           address: item.base_address || null,
-          wifi_password: item.wifi_password || null,
-          entrance_code: item.code_building || null,
-          lock_code: item.code_lock || null,
+          wifi_password: wifiOverride || item.wifi_password || null,
+          entrance_code: entranceCodeOverride || item.code_building || null,
+          lock_code: lockCodeOverride || item.code_lock || null,
           faq_data: [
-            { question: 'Заселение', answer: item.faq_checkin || '' },
-            { question: 'Апартаменты', answer: item.faq_apartment || '' },
-            { question: 'Территория', answer: item.faq_area || '' },
-          ],
-          hero_title: item.title || 'Апартамент',
-          hero_subtitle: item.description || '',
+            { question: 'Заселение', answer: item.faq_checkin || 'Информация не указана' },
+            { question: 'Апартаменты', answer: item.faq_apartment || 'Информация не указана' },
+            { question: 'Территория', answer: item.faq_area || 'Информация не указана' },
+          ].filter(faq => faq.answer !== 'Информация не указана'), // Скрываем пустые FAQ
+          hero_title: item.title || `Апартамент №${item.apartment_number || 'N/A'}`,
+          hero_subtitle: item.description || 'Добро пожаловать!',
           contact_info: {
             phone: item.manager_phone || '',
             whatsapp: item.manager_phone || '',
             telegram: item.manager_phone || '',
           },
-          map_coordinates: { lat: 43.5855, lng: 39.7231 },
+          map_coordinates: { lat: 43.5855, lng: 39.7231 }, // Координаты Сочи по умолчанию
           loyalty_info: '',
         } as any;
         setApartment(mapped);
+        logger.debug('Apartment data mapped successfully');
+      } else {
+        logger.warn('No apartment data received');
+        setApartment(null);
       }
     } catch (error) {
       logger.error('Error loading apartment', error);
+      // Дополнительная информация об ошибке
+      if (error instanceof Error) {
+        logger.error('Error details:', {
+          message: error.message,
+          stack: error.stack,
+          apartmentId
+        });
+      }
+      setApartment(null);
     } finally {
       setLoading(false);
     }
@@ -107,18 +128,24 @@ const ApartmentLanding = () => {
 
   if (!apartment) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center guest-minimal">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-[hsl(var(--guest-navy))] mb-4">Апартамент не найден</h1>
-          <p className="text-[hsl(var(--guest-silver))]">Проверьте правильность ссылки</p>
+      <div className="min-h-screen bg-white flex items-center justify-center guest-minimal px-4">
+        <div className="text-center max-w-md">
+          <h1 className="text-xl md:text-2xl font-bold text-[hsl(var(--guest-navy))] mb-4">Апартамент не найден</h1>
+          <p className="text-[hsl(var(--guest-silver))] mb-6">Проверьте правильность ссылки или обратитесь к менеджеру</p>
+          <button 
+            onClick={() => window.location.href = '/'}
+            className="px-6 py-3 bg-[hsl(var(--guest-navy))] text-white rounded-lg hover:opacity-90 transition-opacity touch-target"
+          >
+            На главную
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white guest-minimal">
-      <div className="max-w-4xl mx-auto px-4">
+    <div className="min-h-screen bg-white guest-minimal overflow-x-hidden">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="stagger-item">
           <HeroSection 
             title={apartment.hero_title}
@@ -127,7 +154,7 @@ const ApartmentLanding = () => {
           />
         </div>
         
-        <div className="py-8">
+        <div className="py-4 md:py-8">
           <WaveDivider />
         </div>
         
