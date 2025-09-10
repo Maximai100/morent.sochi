@@ -218,8 +218,10 @@ export const MediaDisplay = ({ apartmentId, category, useApartmentFields, fallba
               <div key={video.id} className="overflow-hidden rounded-xl shadow-gentle hover:shadow-premium transition-all duration-300 hover-lift">
                 <video
                   controls
-                  className="w-full h-64 object-cover"
+                  className="w-full h-64 object-cover bg-gradient-to-br from-primary/10 to-primary/20"
                   preload="metadata"
+                  poster=""
+                  style={{ backgroundColor: 'hsl(var(--primary) / 0.1)' }}
                 >
                   {/* Try provided mime; fallback to mp4; also add direct URL fallback for some browsers */}
                   {video.mime ? <source src={video.url} type={video.mime} /> : null}

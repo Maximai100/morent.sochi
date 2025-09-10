@@ -1,11 +1,9 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Heart } from "lucide-react";
-import { WaveDivider } from "@/components/WaveDivider";
 
 export const LoyaltySection = ({ info }: { info?: string }) => {
   return (
-    <>
       <Card className="p-8 shadow-premium hover-lift bg-gradient-to-br from-gold/10 via-accent/5 to-secondary/20 border-2 border-gold/20">
         <div className="text-center mb-6">
           <Heart className="w-8 h-8 text-gold mx-auto mb-3" />
@@ -81,7 +79,5 @@ export const LoyaltySection = ({ info }: { info?: string }) => {
           </div>
         </div>
       </Card>
-      <WaveDivider flip />
-    </>
   );
 };

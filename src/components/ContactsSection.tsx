@@ -1,10 +1,8 @@
 import { Card } from "@/components/ui/card";
 import { Phone, MessageCircle, Instagram, Send } from "lucide-react";
-import { WaveDivider } from "@/components/WaveDivider";
 
 export const ContactsSection = ({ contactInfo }: { contactInfo?: { phone: string; whatsapp: string; telegram: string } }) => {
   return (
-    <>
       <Card className="p-8 shadow-premium hover-lift space-y-6">
         <Card className="stagger-item p-6 bg-gradient-to-r from-primary/5 to-gold/5 border-2 border-primary/20 hover-glow">
           <h3 className="text-lg text-primary mb-4">
@@ -55,7 +53,5 @@ export const ContactsSection = ({ contactInfo }: { contactInfo?: { phone: string
           </div>
         </Card>
       </Card>
-      <WaveDivider />
-    </>
   );
 };
