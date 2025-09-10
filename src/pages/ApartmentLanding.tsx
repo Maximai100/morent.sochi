@@ -22,6 +22,7 @@ interface Apartment {
   address: string | null;
   wifi_password: string | null;
   wifi_name: string | null;
+  building_number: string | null;
   entrance_code: string | null;
   lock_code: string | null;
   faq_data: any[];
@@ -112,6 +113,7 @@ const ApartmentLanding = () => {
           address: item.base_address || null,
           wifi_password: wifiOverride || item.wifi_password || null,
           wifi_name: item.wifi_name || null,
+          building_number: item.building_number || null,
           entrance_code: entranceCodeOverride || item.code_building || null,
           lock_code: lockCodeOverride || item.code_lock || null,
           faq_data: [
@@ -184,6 +186,7 @@ const ApartmentLanding = () => {
             title={apartment.hero_title}
             subtitle={apartment.hero_subtitle}
             apartmentNumber={apartment.number}
+            buildingNumber={apartment.building_number} // Add this line
           />
         </div>
         

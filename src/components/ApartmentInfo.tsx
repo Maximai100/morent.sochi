@@ -12,6 +12,7 @@ interface ApartmentInfoProps {
   electronicLockCode?: string;
   wifiPassword?: string;
   wifiName?: string;
+  buildingNumber?: string;
 }
 
 export const ApartmentInfo = ({
@@ -21,7 +22,8 @@ export const ApartmentInfo = ({
   entranceCode = "#2020",
   electronicLockCode = "1111",
   wifiPassword = "логин/пароль",
-  wifiName = "Название сети"
+  wifiName = "Название сети",
+  buildingNumber = "Б"
 }: ApartmentInfoProps) => {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const { toast } = useToast();
@@ -65,6 +67,9 @@ export const ApartmentInfo = ({
           </p>
           <p className="font-bold text-[hsl(var(--guest-navy))] text-2xl">
             Апартаменты {apartmentNumber}
+          </p>
+          <p className="font-bold text-[hsl(var(--guest-navy))] text-lg">
+            Корпус {buildingNumber}
           </p>
         </div>
       </Card>
