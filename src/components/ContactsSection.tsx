@@ -55,7 +55,7 @@ export const ContactsSection = ({ contactInfo }: { contactInfo?: { phone: string
           </div>
         </Card>
       </Card>
-      <WaveDivider variant="gold" />
+      <WaveDivider />
     </>
   );
 };

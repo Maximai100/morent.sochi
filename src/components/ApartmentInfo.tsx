@@ -47,7 +47,7 @@ export const ApartmentInfo = ({
       {/* Apartment Details */}
       <Card className="stagger-item p-6 bg-muted border-2 border-primary/20 hover-glow">
         <div className="flex items-start gap-3 mb-4">
-          <MapPin className="w-7 h-7 text-gold flex-shrink-0 mt-1" />
+          <MapPin className="w-7 h-7 text-[hsl(var(--guest-navy))] flex-shrink-0 mt-1" />
           <div>
             <h3 className="text-lg text-primary mb-2">
               Ваши апартаменты
@@ -57,11 +57,11 @@ export const ApartmentInfo = ({
           </div>
         </div>
         
-        <div className="bg-gradient-to-r from-gold/20 to-primary/20 rounded-xl p-6 border-2 border-gold/30 text-center">
+        <div className="bg-gradient-to-r from-[hsl(var(--guest-navy))]/20 to-[hsl(var(--guest-navy))]/20 rounded-xl p-6 border-2 border-[hsl(var(--guest-navy))]/30 text-center">
           <p className="font-bold text-primary-dark text-lg mb-2">
             2-й подъезд 10 этаж
           </p>
-          <p className="font-bold text-gold text-2xl">
+          <p className="font-bold text-[hsl(var(--guest-navy))] text-2xl">
             Апартаменты {apartmentNumber}
           </p>
         </div>
@@ -70,7 +70,7 @@ export const ApartmentInfo = ({
       {/* Check-in Dates */}
       <Card className="stagger-item p-6 bg-muted border-primary/20 hover-glow">
         <div className="flex items-center gap-3 mb-4">
-          <Calendar className="w-7 h-7 text-gold" />
+          <Calendar className="w-7 h-7 text-[hsl(var(--guest-navy))]" />
           <h3 className="text-lg text-primary">
             Даты бронирования
           </h3>
@@ -80,7 +80,7 @@ export const ApartmentInfo = ({
             <p className="text-sm font-medium text-emerald-700 mb-1">ЗАЕЗД</p>
             <p className="text-lg font-bold text-emerald-800">{checkIn}</p>
           </div>
-          <div className="bg-gradient-to-r from-rose-50 to-gold/5 border-2 border-rose-200 rounded-xl p-4 text-center">
+          <div className="bg-gradient-to-r from-white to-white border-2 border-[hsl(var(--guest-navy))]/30 rounded-xl p-4 text-center">
             <p className="text-sm font-medium text-rose-700 mb-1">ВЫЕЗД</p>
             <p className="text-lg font-bold text-rose-800">{checkOut}</p>
           </div>
@@ -90,7 +90,7 @@ export const ApartmentInfo = ({
       {/* Access Codes */}
       <Card className="stagger-item p-6 bg-muted border-primary/20 hover-glow">
         <div className="flex items-center gap-3 mb-6">
-          <Key className="w-7 h-7 text-gold" />
+          <Key className="w-7 h-7 text-[hsl(var(--guest-navy))]" />
           <h3 className="text-lg text-primary">
             Важные коды доступа:
           </h3>
@@ -100,7 +100,7 @@ export const ApartmentInfo = ({
           <Button 
             variant="outline" 
             onClick={() => copyToClipboard(entranceCode, "Код от подъезда")}
-            className={`group w-full justify-between text-left h-auto p-6 bg-white/80 border-2 border-primary/30 hover:border-gold/50 hover:bg-gradient-to-r hover:from-gold/5 hover:to-primary/5 transition-all duration-300 ${copiedField === "Код от подъезда" ? "pulse-code" : ""}`}
+            className={`group w-full justify-between text-left h-auto p-6 bg-white/80 border-2 border-primary/30 hover:border-[hsl(var(--guest-navy))]/50 hover:bg-gradient-to-r hover:from-[hsl(var(--guest-navy))]/5 hover:to-[hsl(var(--guest-navy))]/5 transition-all duration-300 ${copiedField === "Код от подъезда" ? "pulse-code" : ""}`}
           >
             <div>
               <p className="font-medium text-muted-foreground">Код от подъезда</p>
@@ -109,14 +109,14 @@ export const ApartmentInfo = ({
             {copiedField === "Код от подъезда" ? (
               <Check className="w-6 h-6 text-emerald-500" />
             ) : (
-              <Copy className="w-6 h-6 text-muted-foreground group-hover:text-gold transition-colors" />
+              <Copy className="w-6 h-6 text-muted-foreground group-hover:text-[hsl(var(--guest-navy))] transition-colors" />
             )}
           </Button>
           
           <Button 
             variant="outline" 
             onClick={() => copyToClipboard(electronicLockCode, "Код от электронного замка")}
-            className={`group w-full justify-between text-left h-auto p-6 bg-white/80 border-2 border-primary/30 hover:border-gold/50 hover:bg-gradient-to-r hover:from-gold/5 hover:to-primary/5 transition-all duration-300 ${copiedField === "Код от электронного замка" ? "pulse-code" : ""}`}
+            className={`group w-full justify-between text-left h-auto p-6 bg-white/80 border-2 border-primary/30 hover:border-[hsl(var(--guest-navy))]/50 hover:bg-gradient-to-r hover:from-[hsl(var(--guest-navy))]/5 hover:to-[hsl(var(--guest-navy))]/5 transition-all duration-300 ${copiedField === "Код от электронного замка" ? "pulse-code" : ""}`}
           >
             <div>
               <p className="font-medium text-muted-foreground">Код от электронного замка</p>
@@ -125,17 +125,17 @@ export const ApartmentInfo = ({
             {copiedField === "Код от электронного замка" ? (
               <Check className="w-6 h-6 text-emerald-500" />
             ) : (
-              <Copy className="w-6 h-6 text-muted-foreground group-hover:text-gold transition-colors" />
+              <Copy className="w-6 h-6 text-muted-foreground group-hover:text-[hsl(var(--guest-navy))] transition-colors" />
             )}
           </Button>
           
           <Button 
             variant="outline" 
             onClick={() => copyToClipboard(wifiPassword, "Wi-Fi пароль")}
-            className={`group w-full justify-between text-left h-auto p-6 bg-white/80 border-2 border-primary/30 hover:border-gold/50 hover:bg-gradient-to-r hover:from-gold/5 hover:to-primary/5 transition-all duration-300 ${copiedField === "Wi-Fi пароль" ? "pulse-code" : ""}`}
+            className={`group w-full justify-between text-left h-auto p-6 bg-white/80 border-2 border-primary/30 hover:border-[hsl(var(--guest-navy))]/50 hover:bg-gradient-to-r hover:from-[hsl(var(--guest-navy))]/5 hover:to-[hsl(var(--guest-navy))]/5 transition-all duration-300 ${copiedField === "Wi-Fi пароль" ? "pulse-code" : ""}`}
           >
             <div className="flex items-center gap-3 min-w-0 flex-1">
-              <Wifi className="w-6 h-6 text-gold flex-shrink-0" />
+              <Wifi className="w-6 h-6 text-[hsl(var(--guest-navy))] flex-shrink-0" />
               <div className="min-w-0 flex-1">
                 <p className="font-medium text-muted-foreground">Wi-Fi</p>
                 <p className="text-lg font-semibold text-primary break-all">{wifiPassword}</p>

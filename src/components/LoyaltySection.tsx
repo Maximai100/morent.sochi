@@ -81,7 +81,7 @@ export const LoyaltySection = ({ info }: { info?: string }) => {
           </div>
         </div>
       </Card>
-      <WaveDivider variant="gold" flip />
+      <WaveDivider flip />
     </>
   );
 };

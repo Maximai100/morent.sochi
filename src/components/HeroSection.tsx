@@ -8,7 +8,7 @@ interface HeroSectionProps {
 }
 
 export const HeroSection = ({
-  title = "ДОБРО ПОЖАЛОВАТЬ В MORENT",
+  title = "АПАРТАМЕНТЫ МОРЕНТ",
   subtitle = "Ваш комфортный дом вдали от дома",
   apartmentNumber = "169"
 }: HeroSectionProps) => {
@@ -30,13 +30,6 @@ export const HeroSection = ({
           <p className="text-lg md:text-xl font-playfair text-[hsl(var(--guest-silver))] mb-6 italic">
             {subtitle}
           </p>
-          
-          <Card className="bg-white border-2 border-[hsl(var(--guest-navy))] px-8 py-6">
-            <p className="text-[hsl(var(--guest-silver))] text-sm uppercase tracking-wide">ДОБРО ПОЖАЛОВАТЬ</p>
-            <p className="text-[hsl(var(--guest-navy))] text-xl font-bold">
-              Апартаменты {apartmentNumber}
-            </p>
-          </Card>
         </div>
       </div>
     </Card>

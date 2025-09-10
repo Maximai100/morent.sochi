@@ -13,8 +13,8 @@ export const CheckinSection = ({ apartmentId }: CheckinSectionProps) => {
         <h3 className="mb-6 uppercase text-left text-gradient">ЗАСЕЛЕНИЕ</h3>
         
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 rounded-full border-4 border-gold bg-gradient-to-r from-primary/10 to-gold/10 flex items-center justify-center flex-shrink-0">
-            <span className="text-lg font-bold text-gold">FAQ</span>
+          <div className="w-16 h-16 rounded-full border-4 border-[hsl(var(--guest-navy))] bg-gradient-to-r from-[hsl(var(--guest-navy))]/10 to-[hsl(var(--guest-navy))]/10 flex items-center justify-center flex-shrink-0">
+            <span className="text-lg font-bold text-[hsl(var(--guest-navy))]">FAQ</span>
           </div>
           <div className="text-left">
             <p className="text-foreground text-lg font-medium leading-relaxed">Часто встречающиеся вопросы</p>
@@ -24,7 +24,7 @@ export const CheckinSection = ({ apartmentId }: CheckinSectionProps) => {
         <div className="space-y-4">
           <Card className="p-6 bg-muted border-2 border-primary/20 hover-glow">
             <p className="text-foreground mb-4">
-              <span className="font-semibold text-gold text-lg">1.</span> Подъезд
+              <span className="font-semibold text-[hsl(var(--guest-navy))] text-lg">1.</span> Подъезд
             </p>
             <MediaDisplay 
               apartmentId={apartmentId}
@@ -40,7 +40,7 @@ export const CheckinSection = ({ apartmentId }: CheckinSectionProps) => {
           </Card>
           <Card className="p-6 bg-muted border-2 border-primary/20 hover-glow">
             <p className="text-foreground mb-4">
-              <span className="font-semibold text-gold text-lg">2.</span> Электронный замок
+              <span className="font-semibold text-[hsl(var(--guest-navy))] text-lg">2.</span> Электронный замок
             </p>
             <MediaDisplay 
               apartmentId={apartmentId}
