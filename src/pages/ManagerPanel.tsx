@@ -133,16 +133,30 @@ const ManagerPanel = () => {
   const generateGuestLink = () => {
     const baseUrl = window.location.origin;
     const selected = apartments.find(a => a.id === formData.apartmentId);
-    const params = new URLSearchParams({
-      guest: formData.guestName,
-      checkin: formData.checkIn,
-      checkout: formData.checkOut
-    });
-    const lock = formData.electronicLockCode || selected?.lock_code || '';
+    
+    // Очистка данных перед добавлением в URL
+    const cleanParams = {
+      guest: formData.guestName?.trim() || '',
+      checkin: formData.checkIn?.trim() || '',
+      checkout: formData.checkOut?.trim() || ''
+    };
+    
+    const params = new URLSearchParams();
+    // Добавляем только непустые параметры
+    if (cleanParams.guest) params.set('guest', cleanParams.guest);
+    if (cleanParams.checkin) params.set('checkin', cleanParams.checkin);
+    if (cleanParams.checkout) params.set('checkout', cleanParams.checkout);
+    
+    const lock = formData.electronicLockCode?.trim() || selected?.lock_code?.trim() || '';
     if (lock) params.set('lock', lock);
-    if (selected?.entrance_code) params.set('entrance', selected.entrance_code);
-    if (selected?.wifi_password) params.set('wifi', selected.wifi_password);
-    return `${baseUrl}/apartment/${formData.apartmentId}?${params.toString()}`;
+    if (selected?.entrance_code?.trim()) params.set('entrance', selected.entrance_code.trim());
+    if (selected?.wifi_password?.trim()) params.set('wifi', selected.wifi_password.trim());
+    
+    const link = `${baseUrl}/apartment/${formData.apartmentId}?${params.toString()}`;
+    logger.debug('Generated guest link:', link);
+    logger.debug('Link params:', Object.fromEntries(params.entries()));
+    
+    return link;
   };
 
   const handleCopyLink = () => {
@@ -240,7 +254,22 @@ const ManagerPanel = () => {
       try {
         const link = generateGuestLink();
         await navigator.clipboard.writeText(link);
-        toast({ title: "Бронирование создано", description: "Ссылка скопирована в буфер обмена" });
+        
+        // Проверяем, что ссылка содержит необходимые данные
+        const linkUrl = new URL(link);
+        const linkParams = new URLSearchParams(linkUrl.search);
+        const hasGuestData = linkParams.has('guest') && linkParams.has('checkin') && linkParams.has('checkout');
+        
+        if (!hasGuestData) {
+          logger.warn('Generated link missing guest data:', link);
+          toast({ 
+            title: "Бронирование создано", 
+            description: "Внимание: в ссылке могут отсутствовать некоторые данные гостя",
+            variant: "default"
+          });
+        } else {
+          toast({ title: "Бронирование создано", description: "Ссылка скопирована в буфер обмена" });
+        }
       } catch (clipboardError) {
         // Если не удалось скопировать в буфер, всё равно считаем успехом
         toast({ title: "Бронирование создано", description: "Не удалось скопировать ссылку автоматически" });

@@ -46,16 +46,47 @@ const ApartmentLanding = () => {
   // Получаем параметры из URL для персонализации
   const urlParams = new URLSearchParams(window.location.search);
   const guestName = urlParams.get('guest') || '';
-  const checkInDate = urlParams.get('checkin') || '';
-  const checkOutDate = urlParams.get('checkout') || '';
+  const checkInDateRaw = urlParams.get('checkin') || '';
+  const checkOutDateRaw = urlParams.get('checkout') || '';
   const entranceCodeOverride = urlParams.get('entrance') || '';
   const lockCodeOverride = urlParams.get('lock') || '';
   const wifiOverride = urlParams.get('wifi') || '';
+
+  // Форматируем даты для отображения
+  const formatDateForDisplay = (dateStr: string, isCheckout: boolean = false) => {
+    if (!dateStr) return '';
+    
+    // Если дата уже содержит время, возвращаем как есть
+    if (dateStr.includes(' в ')) return dateStr;
+    
+    // Если дата в формате ДД.ММ.ГГГГ, добавляем время
+    if (dateStr.includes('.')) {
+      const time = isCheckout ? '12:00' : '15:00';
+      return `${dateStr} в ${time}`;
+    }
+    
+    return dateStr;
+  };
+
+  const checkInDate = formatDateForDisplay(checkInDateRaw, false);
+  const checkOutDate = formatDateForDisplay(checkOutDateRaw, true);
 
   useEffect(() => {
     if (apartmentId) {
       loadApartment();
     }
+    // Отладочная информация для URL параметров
+    logger.debug('URL Params:', {
+      apartmentId,
+      guestName,
+      checkInDateRaw,
+      checkOutDateRaw,
+      checkInDate,
+      checkOutDate,
+      entranceCodeOverride,
+      lockCodeOverride,
+      wifiOverride
+    });
   }, [apartmentId]);
 
   const loadApartment = async () => {
@@ -161,7 +192,7 @@ const ApartmentLanding = () => {
         <div className="stagger-item">
           <WelcomeSection 
             guestName={guestName}
-            checkInDate={checkInDate}
+            checkInDate={checkInDateRaw}
             apartmentId={apartment.id}
           />
         </div>
@@ -173,11 +204,11 @@ const ApartmentLanding = () => {
         <div className="stagger-item">
           <ApartmentInfo
             apartmentNumber={apartment.number}
-            checkIn={checkInDate}
-            checkOut={checkOutDate}
-            entranceCode={entranceCodeOverride || apartment.entrance_code || ''}
-            electronicLockCode={lockCodeOverride || apartment.lock_code || ''}
-            wifiPassword={wifiOverride || apartment.wifi_password || ''}
+            checkIn={checkInDate || 'Не указана дата заезда'}
+            checkOut={checkOutDate || 'Не указана дата выезда'}
+            entranceCode={entranceCodeOverride || apartment.entrance_code || 'Код не указан'}
+            electronicLockCode={lockCodeOverride || apartment.lock_code || 'Код не указан'}
+            wifiPassword={wifiOverride || apartment.wifi_password || 'Пароль не указан'}
           />
         </div>
         

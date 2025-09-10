@@ -78,11 +78,11 @@ export const ApartmentInfo = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-gradient-to-r from-emerald-50 to-primary/5 border-2 border-emerald-200 rounded-xl p-4 text-center">
             <p className="text-sm font-medium text-emerald-700 mb-1">ЗАЕЗД</p>
-            <p className="text-lg font-bold text-emerald-800">{checkIn}</p>
+            <p className="text-base md:text-lg font-bold text-emerald-800 break-words">{checkIn}</p>
           </div>
           <div className="bg-gradient-to-r from-white to-white border-2 border-[hsl(var(--guest-navy))]/30 rounded-xl p-4 text-center">
             <p className="text-sm font-medium text-rose-700 mb-1">ВЫЕЗД</p>
-            <p className="text-lg font-bold text-rose-800">{checkOut}</p>
+            <p className="text-base md:text-lg font-bold text-rose-800 break-words">{checkOut}</p>
           </div>
         </div>
       </Card>
