@@ -179,7 +179,7 @@ const ApartmentLanding = () => {
   return (
     <div className="min-h-screen bg-white guest-minimal">
       <div className="max-w-4xl mx-auto px-4">
-        <div className="stagger-item">
+        <div className="stagger-item pt-16">
           <HeroSection 
             title={apartment.hero_title}
             subtitle={apartment.hero_subtitle}

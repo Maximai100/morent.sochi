@@ -18,7 +18,7 @@ export const HeroSection = ({
         <img src={heroImage} alt="MORENT - Ваш дом у моря" loading="lazy" className="absolute inset-0 w-full h-full object-cover opacity-30" />
         <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/60 to-white/40" />
         
-        <div className="relative h-full flex flex-col items-center justify-center text-center px-6 pt-48 pb-16">
+        <div className="relative h-full flex flex-col items-center justify-center text-center px-6 pt-64 pb-16">
           <div className="mb-8">
             <h1 className="text-4xl md:text-6xl font-bold font-playfair text-[hsl(var(--guest-navy))] tracking-wider mb-4 uppercase">
               {title}
