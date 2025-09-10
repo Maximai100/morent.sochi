@@ -131,6 +131,11 @@ All colors MUST be HSL.
 }
 
 @layer base {
+  html, body {
+    height: 100%;
+    overflow-y: auto;
+  }
+
   * {
     @apply border-border;
   }
