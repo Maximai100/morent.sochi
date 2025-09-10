@@ -708,7 +708,7 @@ const ManagerPanel = () => {
                               {checkInDate ? format(checkInDate, 'dd.MM.yyyy') : 'Выбрать дату'}
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="p-0 w-auto max-w-[95vw] sm:w-auto sm:max-w-none">
+                          <PopoverContent className="p-0 w-auto max-w-[95vw] sm:w-auto sm:max-w-none overflow-hidden">
                             <Calendar
                               mode="single"
                               selected={checkInDate}
@@ -716,7 +716,7 @@ const ManagerPanel = () => {
                                 setCheckInDate(d);
                                 if (d) updateFormData('checkIn', format(d, 'dd.MM.yyyy'));
                               }}
-                              className="mobile-calendar"
+                              className="mobile-calendar w-full"
                             />
                           </PopoverContent>
                         </Popover>
