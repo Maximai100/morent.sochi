@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { HelpCircle } from "lucide-react";
 
 const apartmentFAQData = [{
   question: "Возможно ли заселиться раньше 15:00?",
@@ -29,7 +30,9 @@ export const ApartmentFAQ = ({ faqs = apartmentFAQData }: ApartmentFAQProps) => 
   return (
     <Card className="p-8 shadow-premium hover-lift space-y-6">
       <div className="stagger-item">
-        <h3 className="mb-6 uppercase text-left text-gradient">ЧАСТЫЕ ВОПРОСЫ</h3>
+        <h3 className="mb-6 uppercase text-left text-gradient flex items-center gap-2">
+          <HelpCircle className="w-6 h-6 text-primary" /> ЧАСТЫЕ ВОПРОСЫ
+        </h3>
         
         <Accordion type="single" collapsible className="space-y-4">
           {faqs.map((faq, index) => (
