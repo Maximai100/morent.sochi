@@ -1,0 +1,161 @@
+/* Минималистичная цветовая схема для страницы гостя
+ * Только 3 цвета: Белый, Тёмно-синий, Серебристо-серый
+ */
+
+:root {
+  /* Минималистичная палитра */
+  --guest-white: 0 0% 100%;         /* #FFFFFF - основной фон */
+  --guest-navy: 214 81% 20%;        /* #0C2D5A - тёмно-синий */  
+  --guest-silver: 218 12% 63%;      /* #8B93A7 - серебристо-серый */
+  --guest-navy-light: 214 61% 85%;  /* #B8C5E0 - светло-синий для hover */
+}
+
+/* Переопределение цветов для гостевых страниц */
+.guest-minimal {
+  /* Основные цвета */
+  --background: var(--guest-white);
+  --foreground: var(--guest-navy);
+  --card: var(--guest-white);
+  --card-foreground: var(--guest-navy);
+  
+  /* Границы и рамки */
+  --border: var(--guest-navy);
+  --input: var(--guest-white);
+  
+  /* Primary элементы */
+  --primary: var(--guest-navy);
+  --primary-foreground: var(--guest-white);
+  
+  /* Вторичные элементы */
+  --muted: var(--guest-navy-light);
+  --muted-foreground: var(--guest-silver);
+  --secondary: var(--guest-navy-light);
+  --secondary-foreground: var(--guest-navy);
+  
+  /* Убираем золотые акценты */
+  --accent: var(--guest-navy);
+  --accent-foreground: var(--guest-white);
+  --gold: var(--guest-navy);
+  --gold-light: var(--guest-navy-light);
+  
+  /* Убираем градиенты */
+  --gradient-ocean: hsl(var(--guest-navy));
+  --gradient-sunset: hsl(var(--guest-white));
+  --gradient-wave: linear-gradient(180deg, hsl(var(--guest-navy) / 0.05), transparent);
+  
+  /* Простые тени */
+  --shadow-premium: 0 4px 12px hsl(var(--guest-navy) / 0.15);
+  --shadow-ocean: 0 2px 8px hsl(var(--guest-navy) / 0.1);
+  --shadow-gentle: 0 1px 4px hsl(var(--guest-navy) / 0.08);
+}
+
+/* Минималистичные стили компонентов */
+.guest-minimal .text-gradient {
+  @apply text-[hsl(var(--guest-navy))] bg-none;
+}
+
+.guest-minimal .bg-gradient-wave {
+  @apply bg-white;
+}
+
+.guest-minimal .bg-gradient-ocean {
+  @apply bg-[hsl(var(--guest-navy))];
+}
+
+.guest-minimal .bg-muted {
+  @apply bg-white border border-[hsl(var(--guest-navy))] border-opacity-20;
+}
+
+/* Убираем цветные акценты для дат */
+.guest-minimal .from-emerald-50,
+.guest-minimal .to-primary\/5 {
+  @apply from-white to-white;
+}
+
+.guest-minimal .border-emerald-200 {
+  @apply border-[hsl(var(--guest-navy))] border-opacity-30;
+}
+
+.guest-minimal .text-emerald-700,
+.guest-minimal .text-emerald-800 {
+  @apply text-[hsl(var(--guest-navy))];
+}
+
+.guest-minimal .from-rose-50,
+.guest-minimal .to-gold\/5 {
+  @apply from-white to-white;
+}
+
+.guest-minimal .border-rose-200 {
+  @apply border-[hsl(var(--guest-navy))] border-opacity-30;
+}
+
+.guest-minimal .text-rose-700,
+.guest-minimal .text-rose-800 {
+  @apply text-[hsl(var(--guest-navy))];
+}
+
+/* Упрощение золотых элементов */
+.guest-minimal .text-gold {
+  @apply text-[hsl(var(--guest-navy))];
+}
+
+.guest-minimal .from-gold\/20,
+.guest-minimal .to-primary\/20 {
+  @apply from-[hsl(var(--guest-navy-light))] to-[hsl(var(--guest-navy-light))];
+}
+
+.guest-minimal .border-gold\/30 {
+  @apply border-[hsl(var(--guest-navy))] border-opacity-30;
+}
+
+/* Иконки */
+.guest-minimal .text-gold,
+.guest-minimal .group-hover\\:text-gold {
+  @apply text-[hsl(var(--guest-silver))];
+}
+
+.guest-minimal .hover\\:text-gold:hover {
+  @apply text-[hsl(var(--guest-navy))];
+}
+
+/* Кнопки и интерактивные элементы */
+.guest-minimal .hover\\:border-gold\/50:hover {
+  @apply border-[hsl(var(--guest-navy))] border-opacity-50;
+}
+
+.guest-minimal .hover\\:from-gold\/5:hover,
+.guest-minimal .hover\\:to-primary\/5:hover {
+  @apply hover:from-[hsl(var(--guest-navy-light))] hover:to-[hsl(var(--guest-navy-light))];
+}
+
+.guest-minimal .border-primary\/20 {
+  @apply border-[hsl(var(--guest-navy))] border-opacity-20;
+}
+
+.guest-minimal .border-primary\/30 {
+  @apply border-[hsl(var(--guest-navy))] border-opacity-30;
+}
+
+/* Цветные статусы - делаем монохромными */
+.guest-minimal .text-emerald-500 {
+  @apply text-[hsl(var(--guest-navy))];
+}
+
+.guest-minimal .pulse-code {
+  @apply bg-[hsl(var(--guest-navy))] text-white;
+}
+
+/* Hero section упрощение */
+.guest-minimal .bg-gradient-to-b {
+  background: linear-gradient(to bottom, transparent, hsl(var(--guest-navy) / 0.2), hsl(var(--guest-navy) / 0.6));
+}
+
+.guest-minimal .bg-white\/10 {
+  background-color: hsl(var(--guest-white) / 0.9);
+  color: hsl(var(--guest-navy));
+}
+
+.guest-minimal .border-white\/20 {
+  border-color: hsl(var(--guest-navy) / 0.2);
+}

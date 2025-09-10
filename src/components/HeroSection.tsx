@@ -13,29 +13,27 @@ export const HeroSection = ({
   apartmentNumber = "169"
 }: HeroSectionProps) => {
   return (
-    <Card className="relative overflow-hidden border-0 shadow-ocean">
-      <div className="relative h-[500px] bg-gradient-ocean">
-        <img src={heroImage} alt="MORENT - Ваш дом у моря" loading="lazy" className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-80" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/20 to-primary/60" />
+    <Card className="relative overflow-hidden border-0 border-[hsl(var(--guest-navy))] border-opacity-20">
+      <div className="relative h-[400px] bg-white border-b border-[hsl(var(--guest-navy))] border-opacity-20">
+        <img src={heroImage} alt="MORENT - Ваш дом у моря" loading="lazy" className="absolute inset-0 w-full h-full object-cover opacity-30" />
+        <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/60 to-white/40" />
         
         <div className="relative h-full flex flex-col items-center justify-center text-center px-6">
           <div className="mb-8">
-            <h1 className="text-6xl md:text-8xl font-bold font-playfair text-white tracking-wider mb-4 uppercase">
+            <h1 className="text-4xl md:text-6xl font-bold font-playfair text-[hsl(var(--guest-navy))] tracking-wider mb-4 uppercase">
               {title}
             </h1>
-            {/* Wave line like in logo */}
-            <svg className="w-48 h-3 mx-auto" viewBox="0 0 200 12" fill="none">
-              <path d="M0 6C16.67 6 16.67 0 33.33 0S50 6 66.67 6 83.33 0 100 0S116.67 6 133.33 6 150 0 166.67 0S183.33 6 200 6" stroke="currentColor" strokeWidth="2" className="text-white/60"/>
-            </svg>
+            {/* Simple line instead of wave */}
+            <div className="w-24 h-1 mx-auto bg-[hsl(var(--guest-navy))]"></div>
           </div>
           
-          <p className="text-2xl md:text-3xl font-playfair text-white/90 mb-6 italic">
+          <p className="text-lg md:text-xl font-playfair text-[hsl(var(--guest-silver))] mb-6 italic">
             {subtitle}
           </p>
           
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20 px-8 py-6">
-            <p className="text-white text-lg">ДОБРО ПОЖАЛОВАТЬ</p>
-            <p className="text-white text-2xl font-bold">
+          <Card className="bg-white border-2 border-[hsl(var(--guest-navy))] px-8 py-6">
+            <p className="text-[hsl(var(--guest-silver))] text-sm uppercase tracking-wide">ДОБРО ПОЖАЛОВАТЬ</p>
+            <p className="text-[hsl(var(--guest-navy))] text-xl font-bold">
               Апартаменты {apartmentNumber}
             </p>
           </Card>

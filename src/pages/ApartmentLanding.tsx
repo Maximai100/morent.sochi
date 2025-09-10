@@ -12,6 +12,7 @@ import { YandexMap } from "@/components/YandexMap";
 import { WaveDivider } from "@/components/WaveDivider";
 import { directus, ApartmentRecord } from "@/integrations/directus/client";
 import { readItem } from '@directus/sdk';
+import "@/styles/minimal-guest.css";
 
 interface Apartment {
   id: string;
@@ -98,25 +99,25 @@ const ApartmentLanding = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-wave flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      <div className="min-h-screen bg-white flex items-center justify-center guest-minimal">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[hsl(var(--guest-navy))]"></div>
       </div>
     );
   }
 
   if (!apartment) {
     return (
-      <div className="min-h-screen bg-gradient-wave flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center guest-minimal">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-primary mb-4">Апартамент не найден</h1>
-          <p className="text-muted-foreground">Проверьте правильность ссылки</p>
+          <h1 className="text-2xl font-bold text-[hsl(var(--guest-navy))] mb-4">Апартамент не найден</h1>
+          <p className="text-[hsl(var(--guest-silver))]">Проверьте правильность ссылки</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-wave">
+    <div className="min-h-screen bg-white guest-minimal">
       <HeroSection 
         title={apartment.hero_title}
         subtitle={apartment.hero_subtitle}
