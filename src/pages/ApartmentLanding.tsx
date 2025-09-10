@@ -98,8 +98,8 @@ const ApartmentLanding = () => {
     try {
       logger.debug('Loading apartment:', apartmentId);
       const item = await directus.request(readItem<ApartmentRecord>('apartments', apartmentId, {
-        fields: ['*'] // Запрашиваем все поля явно
-      } as any));
+        fields: ['*', { photos: ['*'], video_entrance: ['*'], video_lock: ['*'] }]
+      }));
       
       if (item) {
         logger.debug('Apartment loaded successfully:', item);

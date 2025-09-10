@@ -4,6 +4,8 @@ import { createDirectus, rest, staticToken } from '@directus/sdk';
 const isProduction = import.meta.env.PROD;
 export const DIRECTUS_URL: string | undefined = (import.meta as any).env?.VITE_DIRECTUS_URL
   || (!isProduction && typeof window !== 'undefined' ? (window as any).__DIRECTUS_URL : undefined);
+
+
 export const DIRECTUS_STATIC_TOKEN: string | undefined = (import.meta as any).env?.VITE_DIRECTUS_STATIC_TOKEN
   || (!isProduction && typeof window !== 'undefined' ? (window as any).__DIRECTUS_TOKEN : undefined);
 

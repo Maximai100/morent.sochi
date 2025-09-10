@@ -218,8 +218,10 @@ All colors MUST be HSL.
   
   /* Stagger Animation */
   .stagger-item {
-    @apply opacity-0 translate-y-8;
-    animation: fade-in 0.6s ease-out forwards;
+    /* @apply opacity-0 translate-y-8; */
+    /* animation: fade-in 0.6s ease-out forwards; */
+    opacity: 1; /* Set to visible */
+    transform: translateY(0); /* Set to final position */
   }
   .stagger-item:nth-child(1) { animation-delay: 0.1s; }
   .stagger-item:nth-child(2) { animation-delay: 0.2s; }
