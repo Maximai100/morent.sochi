@@ -159,24 +159,104 @@ const ManagerPanel = () => {
     return link;
   };
 
-  const handleCopyLink = () => {
+  const handleCopyLink = async () => {
     const link = generateGuestLink();
-    navigator.clipboard.writeText(link);
-    toast({
-      title: "Ссылка скопирована!",
-      description: "Ссылка для гостя скопирована в буфер обмена",
-    });
+    
+    // Проверяем поддержку современного Clipboard API
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(link);
+        toast({
+          title: "Ссылка скопирована!",
+          description: "Ссылка для гостя скопирована в буфер обмена",
+        });
+        return;
+      } catch (error) {
+        logger.error('Modern clipboard API failed:', error);
+      }
+    }
+    
+    // Fallback для старых браузеров или небезопасного контекста
+    const textArea = document.createElement('textarea');
+    textArea.value = link;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+      // Пытаемся использовать старый API
+      const success = document.execCommand('copy');
+      if (success) {
+        toast({
+          title: "Ссылка скопирована!",
+          description: "Ссылка для гостя скопирована в буфер обмена",
+        });
+      } else {
+        throw new Error('execCommand failed');
+      }
+    } catch (fallbackError) {
+      logger.error('Fallback clipboard method failed:', fallbackError);
+      toast({
+        title: "Не удалось скопировать",
+        description: "Ссылка отображается в поле выше. Скопируйте её вручную",
+        variant: "destructive"
+      });
+    } finally {
+      document.body.removeChild(textArea);
+    }
   };
 
-  const handleShareLink = () => {
+  const handleShareLink = async () => {
     const link = generateGuestLink();
     const message = `Здравствуйте, ${formData.guestName}!\n\nДобро пожаловать в MORENT 🌴\n\nВаша персональная инструкция по заселению:\n${link}`;
     
-    navigator.clipboard.writeText(message);
-    toast({
-      title: "Сообщение готово!",
-      description: "Сообщение с инструкцией скопировано в буфер обмена",
-    });
+    // Проверяем поддержку современного Clipboard API
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(message);
+        toast({
+          title: "Сообщение готово!",
+          description: "Сообщение с инструкцией скопировано в буфер обмена",
+        });
+        return;
+      } catch (error) {
+        logger.error('Modern clipboard API failed for message:', error);
+      }
+    }
+    
+    // Fallback для старых браузеров или небезопасного контекста
+    const textArea = document.createElement('textarea');
+    textArea.value = message;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+      const success = document.execCommand('copy');
+      if (success) {
+        toast({
+          title: "Сообщение готово!",
+          description: "Сообщение с инструкцией скопировано в буфер обмена",
+        });
+      } else {
+        throw new Error('execCommand failed');
+      }
+    } catch (fallbackError) {
+      logger.error('Fallback clipboard method failed for message:', fallbackError);
+      toast({
+        title: "Не удалось скопировать",
+        description: "Сообщение отображается в поле выше. Скопируйте его вручную",
+        variant: "destructive"
+      });
+    } finally {
+      document.body.removeChild(textArea);
+    }
   };
 
   const updateFormData = (field: string, value: string) => {
@@ -251,28 +331,27 @@ const ManagerPanel = () => {
 
       await loadBookings();
       
-      try {
-        const link = generateGuestLink();
-        await navigator.clipboard.writeText(link);
-        
-        // Проверяем, что ссылка содержит необходимые данные
-        const linkUrl = new URL(link);
-        const linkParams = new URLSearchParams(linkUrl.search);
-        const hasGuestData = linkParams.has('guest') && linkParams.has('checkin') && linkParams.has('checkout');
-        
-        if (!hasGuestData) {
-          logger.warn('Generated link missing guest data:', link);
-          toast({ 
-            title: "Бронирование создано", 
-            description: "Внимание: в ссылке могут отсутствовать некоторые данные гостя",
-            variant: "default"
-          });
-        } else {
-          toast({ title: "Бронирование создано", description: "Ссылка скопирована в буфер обмена" });
-        }
-      } catch (clipboardError) {
-        // Если не удалось скопировать в буфер, всё равно считаем успехом
-        toast({ title: "Бронирование создано", description: "Не удалось скопировать ссылку автоматически" });
+      // Просто показываем успешное сообщение без автоматического копирования
+      const link = generateGuestLink();
+      
+      // Проверяем, что ссылка содержит необходимые данные
+      const linkUrl = new URL(link);
+      const linkParams = new URLSearchParams(linkUrl.search);
+      const hasGuestData = linkParams.has('guest') && linkParams.has('checkin') && linkParams.has('checkout');
+      
+      if (!hasGuestData) {
+        logger.warn('Generated link missing guest data:', link);
+        toast({ 
+          title: "Бронирование создано", 
+          description: "Внимание: в ссылке могут отсутствовать некоторые данные гостя",
+          variant: "default"
+        });
+      } else {
+        toast({ 
+          title: "Бронирование создано", 
+          description: "Используйте кнопку 'Скопировать ссылку' для получения ссылки",
+          variant: "default"
+        });
       }
       
     } catch (e: any) {
