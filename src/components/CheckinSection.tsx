@@ -25,7 +25,7 @@ export const CheckinSection = ({ apartmentId }: CheckinSectionProps) => {
           <div className="space-y-4">
             <Card className="p-6 bg-muted border-2 border-primary/20 hover-glow">
               <p className="text-foreground mb-4">
-                <span className="font-semibold text-gold text-lg">1.</span> Видео подъезда
+                <span className="font-semibold text-gold text-lg">1.</span> Подъезд
               </p>
               <MediaDisplay 
                 apartmentId={apartmentId}
@@ -40,7 +40,7 @@ export const CheckinSection = ({ apartmentId }: CheckinSectionProps) => {
             </Card>
             <Card className="p-6 bg-muted border-2 border-primary/20 hover-glow">
               <p className="text-foreground mb-4">
-                <span className="font-semibold text-gold text-lg">2.</span> Видео электронного замка
+                <span className="font-semibold text-gold text-lg">2.</span> Электронный замок
               </p>
               <MediaDisplay 
                 apartmentId={apartmentId}

@@ -118,50 +118,69 @@ const ApartmentLanding = () => {
 
   return (
     <div className="min-h-screen bg-white guest-minimal">
-      <HeroSection 
-        title={apartment.hero_title}
-        subtitle={apartment.hero_subtitle}
-      />
-      
-      <WelcomeSection 
-        guestName={guestName}
-        checkInDate={checkInDate}
-        apartmentId={apartment.id}
-      />
-      
-      <WaveDivider />
-      
-      <ApartmentInfo
-        apartmentNumber={apartment.number}
-        checkIn={checkInDate}
-        checkOut={checkOutDate}
-        entranceCode={entranceCodeOverride || apartment.entrance_code || ''}
-        electronicLockCode={lockCodeOverride || apartment.lock_code || ''}
-        wifiPassword={wifiOverride || apartment.wifi_password || ''}
-      />
-      
-      <WaveDivider />
-      
-      <CheckinSection apartmentId={apartment.id} />
-      
-      <WaveDivider />
-      
-      <ApartmentFAQ faqs={apartment.faq_data} />
-      
-      <WaveDivider />
-      
-      <YandexMap 
-        coordinates={apartment.map_coordinates}
-        address={apartment.address || ''}
-      />
-      
-      <WaveDivider />
-      
-      <ContactsSection contactInfo={apartment.contact_info} />
-      
-      <WaveDivider />
-      
-      <LoyaltySection info={apartment.loyalty_info} />
+      <div className="max-w-4xl mx-auto px-4 space-y-8">
+        <div className="stagger-item">
+          <HeroSection 
+            title={apartment.hero_title}
+            subtitle={apartment.hero_subtitle}
+            apartmentNumber={apartment.number}
+          />
+        </div>
+        
+        <div className="stagger-item">
+          <WelcomeSection 
+            guestName={guestName}
+            checkInDate={checkInDate}
+            apartmentId={apartment.id}
+          />
+        </div>
+        
+        <WaveDivider />
+        
+        <div className="stagger-item">
+          <ApartmentInfo
+            apartmentNumber={apartment.number}
+            checkIn={checkInDate}
+            checkOut={checkOutDate}
+            entranceCode={entranceCodeOverride || apartment.entrance_code || ''}
+            electronicLockCode={lockCodeOverride || apartment.lock_code || ''}
+            wifiPassword={wifiOverride || apartment.wifi_password || ''}
+          />
+        </div>
+        
+        <WaveDivider />
+        
+        <div className="stagger-item">
+          <CheckinSection apartmentId={apartment.id} />
+        </div>
+        
+        <WaveDivider />
+        
+        <div className="stagger-item">
+          <ApartmentFAQ faqs={apartment.faq_data} />
+        </div>
+        
+        <WaveDivider />
+        
+        <div className="stagger-item">
+          <YandexMap 
+            coordinates={apartment.map_coordinates}
+            address={apartment.address || ''}
+          />
+        </div>
+        
+        <WaveDivider />
+        
+        <div className="stagger-item">
+          <ContactsSection contactInfo={apartment.contact_info} />
+        </div>
+        
+        <WaveDivider />
+        
+        <div className="stagger-item">
+          <LoyaltySection info={apartment.loyalty_info} />
+        </div>
+      </div>
     </div>
   );
 };

@@ -172,7 +172,7 @@ export const MediaDisplay = ({ apartmentId, category, useApartmentFields, fallba
       {/* Photo Gallery */}
       {photos.length > 0 && (
         <div className="stagger-item">
-          <h3 className="mb-6 uppercase text-left text-gradient">ФОТОГАЛЕРЕЯ</h3>
+          <h3 className="mb-6 uppercase text-left text-gradient">ФОТОГРАФИИ</h3>
           
           <Carousel className="w-full max-w-4xl mx-auto">
             <CarouselContent>
@@ -210,7 +210,7 @@ export const MediaDisplay = ({ apartmentId, category, useApartmentFields, fallba
       {/* Video Section */}
       {videos.length > 0 && (
         <div className="stagger-item">
-          <h3 className="mb-6 uppercase text-left text-gradient">ВИДЕО-ОБЗОР</h3>
+          <h3 className="mb-6 uppercase text-left text-gradient">ВИДЕО</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {videos.map((video) => (
