@@ -11,6 +11,7 @@ interface ApartmentInfoProps {
   entranceCode?: string;
   electronicLockCode?: string;
   wifiPassword?: string;
+  wifiName?: string;
 }
 
 export const ApartmentInfo = ({
@@ -19,7 +20,8 @@ export const ApartmentInfo = ({
   checkOut = "09.06.2025 в 12:00",
   entranceCode = "#2020",
   electronicLockCode = "1111",
-  wifiPassword = "логин/пароль"
+  wifiPassword = "логин/пароль",
+  wifiName = "Название сети"
 }: ApartmentInfoProps) => {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const { toast } = useToast();
@@ -138,7 +140,8 @@ export const ApartmentInfo = ({
               <Wifi className="w-6 h-6 text-[hsl(var(--guest-navy))] flex-shrink-0" />
               <div className="min-w-0 flex-1">
                 <p className="font-medium text-muted-foreground">Wi-Fi</p>
-                <p className="text-lg font-semibold text-primary break-all">{wifiPassword}</p>
+                <p className="text-lg font-semibold text-primary break-all">{wifiName}</p>
+                <p className="text-sm text-muted-foreground break-all">{wifiPassword}</p>
               </div>
             </div>
             {copiedField === "Wi-Fi пароль" ? (
