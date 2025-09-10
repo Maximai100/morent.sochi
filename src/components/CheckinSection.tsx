@@ -14,7 +14,7 @@ export const CheckinSection = ({ apartmentId }: CheckinSectionProps) => {
         
         <div className="space-y-4">
           <Card className="p-6 bg-muted border-2 border-primary/20 hover-glow">
-            <!-- Video title removed -->
+            {/* Video title removed */}
             <MediaDisplay 
               apartmentId={apartmentId}
               useApartmentFields
@@ -28,7 +28,7 @@ export const CheckinSection = ({ apartmentId }: CheckinSectionProps) => {
             />
           </Card>
           <Card className="p-6 bg-muted border-2 border-primary/20 hover-glow">
-            <!-- Video title removed -->
+            {/* Video title removed */}
             <MediaDisplay 
               apartmentId={apartmentId}
               useApartmentFields
