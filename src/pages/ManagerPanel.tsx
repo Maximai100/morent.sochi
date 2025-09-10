@@ -25,7 +25,7 @@ import "@/styles/manager-mobile.css";
 const ManagerPanel = () => {
   const { toast } = useToast();
   const { logout } = useAuth();
-  const [apartments, setApartments] = useState<Array<{ id: string; name: string; number: string; entrance_code: string | null; lock_code: string | null; wifi_password: string | null; address?: string | null; description?: string | null }>>([]);
+  const [apartments, setApartments] = useState<Array<{ id: string; name: string; number: string; entrance_code: string | null; lock_code: string | null; wifi_password: string | null; address?: string | null; description?: string | null; building_number?: string | null }>>([]);
   const [formData, setFormData] = useState({
     apartmentId: '',
     checkIn: '',
@@ -45,6 +45,7 @@ const ManagerPanel = () => {
   const [apartmentForm, setApartmentForm] = useState({
     name: '',
     number: '',
+    building_number: '',
     description: '',
     address: '',
     wifi_password: '',
@@ -73,6 +74,7 @@ const ManagerPanel = () => {
           id: a.id,
           name: a.title || '',
           number: a.apartment_number || '',
+          building_number: a.building_number,
           entrance_code: a.code_building,
           lock_code: a.code_lock,
           wifi_password: a.wifi_password,
@@ -505,6 +507,7 @@ const ManagerPanel = () => {
         await directus.request(updateItem('apartments', selectedApartment.id, {
           title: apartmentForm.name,
           apartment_number: apartmentForm.number,
+          building_number: apartmentForm.building_number || null,
           description: apartmentForm.description || null,
           base_address: apartmentForm.address || null,
           wifi_password: apartmentForm.wifi_password || null,
@@ -523,6 +526,7 @@ const ManagerPanel = () => {
         await directus.request(createItem('apartments', {
           title: apartmentForm.name,
           apartment_number: apartmentForm.number,
+          building_number: apartmentForm.building_number || null,
           description: apartmentForm.description || null,
           base_address: apartmentForm.address || null,
           wifi_password: apartmentForm.wifi_password || null,
@@ -571,6 +575,7 @@ const ManagerPanel = () => {
       setApartmentForm({
         name: full.title || '',
         number: full.apartment_number || '',
+        building_number: full.building_number || '',
         description: full.description || '',
         address: full.base_address || '',
         wifi_password: full.wifi_password || '',
@@ -907,7 +912,7 @@ const ManagerPanel = () => {
                       <div className="flex items-start justify-between">
                         <div>
                           <div className="inline-block px-2 py-1 rounded-md border-2 border-gold/60 bg-gold/10 text-gold font-bold tracking-wide text-base mb-1 apartment-number">
-                            № {a.number}
+                            Корпус {a.building_number} № {a.number}
                           </div>
                           <p className="text-lg font-semibold">{a.name}</p>
                         </div>
@@ -957,6 +962,10 @@ const ManagerPanel = () => {
                           <div>
                             <Label>Номер</Label>
                             <Input value={apartmentForm.number} onChange={(e) => setApartmentForm({ ...apartmentForm, number: e.target.value })} placeholder="169" />
+                          </div>
+                          <div>
+                            <Label>Номер корпуса</Label>
+                            <Input value={apartmentForm.building_number} onChange={(e) => setApartmentForm({ ...apartmentForm, building_number: e.target.value })} placeholder="Б" />
                           </div>
                           <div className="md:col-span-2">
                             <Label>Описание</Label>
