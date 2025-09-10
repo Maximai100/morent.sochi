@@ -1,9 +1,6 @@
-/* Мобильная адаптация панели менеджера */
+/* Мобильная адаптация панели менеджера - упрощенная версия */
 .manager-mobile {
-  /* PWA оптимизация */
-  overscroll-behavior-x: none;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
+  /* Базовые PWA стили */
   max-width: 100vw;
   overflow-x: hidden;
 }

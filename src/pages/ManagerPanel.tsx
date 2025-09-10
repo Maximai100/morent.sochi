@@ -20,7 +20,8 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { formatDateForAPI, formatDateForDisplay, parseAPIDate, parseDisplayDate } from "@/utils/date";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import "@/styles/manager-mobile.css";
+// Временно отключены мобильные стили для отладки
+// import "@/styles/manager-mobile.css";
 
 const ManagerPanel = () => {
   const { toast } = useToast();
@@ -403,10 +404,10 @@ const ManagerPanel = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-wave p-4 md:p-6 manager-mobile">
+    <div className="min-h-screen bg-gradient-wave p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         <Card className="p-4 md:p-8 shadow-ocean">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 md:mb-8 gap-4 sm:gap-0 manager-header">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 md:mb-8 gap-4 sm:gap-0">
           <div className="flex items-center gap-2 md:gap-3 flex-1 sm:flex-none">
             <Settings className="w-6 h-6 md:w-8 md:h-8 text-primary flex-shrink-0" />
             <h1 className="text-lg md:text-3xl font-bold font-playfair text-primary uppercase leading-tight">Панель менеджера MORENT</h1>
@@ -434,12 +435,12 @@ const ManagerPanel = () => {
 
           <Tabs defaultValue="guest-data" className="w-full">
             <TabsList className="grid w-full tabs-list-mobile">
-              <TabsTrigger value="guest-data" className="flex items-center gap-2 tabs-trigger-mobile">
+              <TabsTrigger value="guest-data" className="flex items-center gap-2">
                 <Settings className="w-4 h-4" />
                 <span className="hidden sm:inline">Данные гостя</span>
                 <span className="sm:hidden">Гость</span>
               </TabsTrigger>
-              <TabsTrigger value="apartments" className="flex items-center gap-2 tabs-trigger-mobile">
+              <TabsTrigger value="apartments" className="flex items-center gap-2">
                 <ExternalLink className="w-4 h-4" />
                 <span className="hidden sm:inline">Апартаменты</span>
                 <span className="sm:hidden">Квартиры</span>
@@ -447,9 +448,9 @@ const ManagerPanel = () => {
             </TabsList>
 
             <TabsContent value="guest-data" className="space-y-6 mt-6">
-              <div className="grid md:grid-cols-2 gap-4 md:gap-8 guest-form-grid">
+              <div className="grid md:grid-cols-2 gap-4 md:gap-8">
                 {/* Form Section */}
-                <div className="space-y-4 md:space-y-6 form-section">
+                <div className="space-y-4 md:space-y-6">
                   <h2 className="text-xl font-semibold font-playfair text-primary border-b border-border pb-2 uppercase">
                     Данные для гостя
                   </h2>
@@ -565,7 +566,7 @@ const ManagerPanel = () => {
                 </div>
 
                 {/* Preview, Actions and Bookings List */}
-                <div className="space-y-4 md:space-y-6 link-section">
+                <div className="space-y-4 md:space-y-6">
                   <h2 className="text-xl font-semibold font-playfair text-primary border-b border-border pb-2 uppercase">
                     Ссылка для отправки
                   </h2>
@@ -624,10 +625,10 @@ const ManagerPanel = () => {
                   </Card>
                   <div className="space-y-3">
                     <h3 className="text-xl font-semibold font-playfair text-primary border-b border-border pb-2 uppercase">Текущие бронирования</h3>
-                    <div className="grid grid-cols-1 gap-3 bookings-list">
+                    <div className="grid grid-cols-1 gap-3">
                       {bookings.map((b) => (
-                        <Card key={b.id} className="p-3 booking-item">
-                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 booking-item-content">
+                        <Card key={b.id} className="p-3">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
                             <div className="text-left flex-1">
                               <div className="font-medium">{b.guest_name}</div>
                               <div className="text-sm text-muted-foreground">
@@ -636,7 +637,7 @@ const ManagerPanel = () => {
                                 <span className="block sm:inline">Выезд: {b.check_out_date || '-'}</span>
                               </div>
                             </div>
-                            <div className="flex gap-1 booking-actions w-full sm:w-auto">
+                            <div className="flex gap-1 w-full sm:w-auto">
                               <Button variant="ghost" size="sm" onClick={() => startEditBooking(b)} className="flex-1 sm:flex-none">
                                 <Edit className="w-4 h-4" />
                                 <span className="ml-1 sm:hidden">Изменить</span>
@@ -693,7 +694,7 @@ const ManagerPanel = () => {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 apartments-grid">
                 {apartments.map((a) => (
-                  <Card key={a.id} className="hover-lift apartment-card-mobile">
+                  <Card key={a.id} className="hover-lift">
                     <div className="p-4">
                       <div className="flex items-start justify-between">
                         <div>
@@ -730,7 +731,7 @@ const ManagerPanel = () => {
                     <DialogTitle>{selectedApartment?.id ? 'Редактировать апартамент' : 'Новый апартамент'}</DialogTitle>
                     <DialogDescription>Заполните поля карточки апартамента и прикрепите медиа.</DialogDescription>
                   </DialogHeader>
-                  <div className="flex-1 overflow-y-auto px-4 md:px-6 pb-2 dialog-scrollable">
+                  <div className="flex-1 overflow-y-auto px-4 md:px-6 pb-2">
                     <Tabs defaultValue="main" className="w-full">
                       <TabsList className="grid w-full grid-cols-3 mb-4">
                         <TabsTrigger value="main">Основное</TabsTrigger>
