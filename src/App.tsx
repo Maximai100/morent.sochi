@@ -13,7 +13,6 @@ const Login = lazy(() => import("./pages/Login"));
 const CheckinGuide = lazy(() => import("./pages/CheckinGuide"));
 const ManagerPanel = lazy(() => import("./pages/ManagerPanel"));
 const ApartmentLanding = lazy(() => import("./pages/ApartmentLanding"));
-const SimpleGuestPage = lazy(() => import("./pages/SimpleGuestPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading component
@@ -59,8 +58,7 @@ const App = () => (
                 </ProtectedRoute>
               } />
               <Route path="/guide" element={<CheckinGuide />} />
-              <Route path="/apartment/:apartmentId" element={<SimpleGuestPage />} />
-              <Route path="/apartment-full/:apartmentId" element={<ApartmentLanding />} />
+              <Route path="/apartment/:apartmentId" element={<ApartmentLanding />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
