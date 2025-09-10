@@ -1,10 +1,10 @@
 {
-  "name": "MORENT - Гид гостя",
+  "name": "MORENT - Гид гостя и панель менеджера",
   "short_name": "MORENT",
-  "description": "Персональный гид для гостей апартаментов MORENT в Сочи",
+  "description": "Персональный гид для гостей апартаментов MORENT в Сочи и панель управления для менеджеров",
   "start_url": "/",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
   "background_color": "#FFFFFF",
   "theme_color": "#0C2D5A",
   "lang": "ru",
@@ -28,7 +28,19 @@
       "purpose": "maskable"
     }
   ],
-  "categories": ["travel", "lifestyle"],
+  "categories": ["travel", "lifestyle", "business", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Панель менеджера",
+      "url": "/manager",
+      "description": "Управление апартаментами и бронированиями"
+    },
+    {
+      "name": "Гид гостя",
+      "url": "/guide",
+      "description": "Демонстрационная страница для гостей"
+    }
+  ],
   "screenshots": [],
   "prefer_related_applications": false
 }

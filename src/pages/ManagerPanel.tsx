@@ -20,6 +20,7 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { formatDateForAPI, formatDateForDisplay, parseAPIDate, parseDisplayDate } from "@/utils/date";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import "@/styles/manager-mobile.css";
 
 const ManagerPanel = () => {
   const { toast } = useToast();
@@ -402,50 +403,53 @@ const ManagerPanel = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-wave p-4">
+    <div className="min-h-screen bg-gradient-wave p-4 md:p-6 manager-mobile">
       <div className="max-w-6xl mx-auto">
-        <Card className="p-8 shadow-ocean">
-          <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <Settings className="w-8 h-8 text-primary" />
-            <h1 className="text-3xl font-bold font-playfair text-primary uppercase">Панель менеджера MORENT</h1>
+        <Card className="p-4 md:p-8 shadow-ocean">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 md:mb-8 gap-4 sm:gap-0 manager-header">
+          <div className="flex items-center gap-2 md:gap-3 flex-1 sm:flex-none">
+            <Settings className="w-6 h-6 md:w-8 md:h-8 text-primary flex-shrink-0" />
+            <h1 className="text-lg md:text-3xl font-bold font-playfair text-primary uppercase leading-tight">Панель менеджера MORENT</h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 manager-header-buttons w-full sm:w-auto">
             <Button 
               variant="outline" 
               onClick={() => window.location.href = '/'}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 text-sm md:text-base px-2 md:px-4 flex-1 sm:flex-none justify-center"
             >
               <ArrowLeft className="w-4 h-4" />
-              На главную
+              <span className="hidden sm:inline">На главную</span>
+              <span className="sm:hidden">Главная</span>
             </Button>
             <Button 
               variant="outline" 
               onClick={logout}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 text-sm md:text-base px-2 md:px-4 flex-1 sm:flex-none justify-center"
             >
               <LogOut className="w-4 h-4" />
-              Выйти
+              <span className="hidden sm:inline">Выйти</span>
             </Button>
           </div>
           </div>
 
           <Tabs defaultValue="guest-data" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="guest-data" className="flex items-center gap-2">
+            <TabsList className="grid w-full tabs-list-mobile">
+              <TabsTrigger value="guest-data" className="flex items-center gap-2 tabs-trigger-mobile">
                 <Settings className="w-4 h-4" />
-                Данные гостя
+                <span className="hidden sm:inline">Данные гостя</span>
+                <span className="sm:hidden">Гость</span>
               </TabsTrigger>
-              <TabsTrigger value="apartments" className="flex items-center gap-2">
+              <TabsTrigger value="apartments" className="flex items-center gap-2 tabs-trigger-mobile">
                 <ExternalLink className="w-4 h-4" />
-                Апартаменты
+                <span className="hidden sm:inline">Апартаменты</span>
+                <span className="sm:hidden">Квартиры</span>
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="guest-data" className="space-y-6 mt-6">
-              <div className="grid md:grid-cols-2 gap-8">
+              <div className="grid md:grid-cols-2 gap-4 md:gap-8 guest-form-grid">
                 {/* Form Section */}
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6 form-section">
                   <h2 className="text-xl font-semibold font-playfair text-primary border-b border-border pb-2 uppercase">
                     Данные для гостя
                   </h2>
@@ -561,7 +565,7 @@ const ManagerPanel = () => {
                 </div>
 
                 {/* Preview, Actions and Bookings List */}
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6 link-section">
                   <h2 className="text-xl font-semibold font-playfair text-primary border-b border-border pb-2 uppercase">
                     Ссылка для отправки
                   </h2>
@@ -620,27 +624,33 @@ const ManagerPanel = () => {
                   </Card>
                   <div className="space-y-3">
                     <h3 className="text-xl font-semibold font-playfair text-primary border-b border-border pb-2 uppercase">Текущие бронирования</h3>
-                    <div className="grid grid-cols-1 gap-3">
+                    <div className="grid grid-cols-1 gap-3 bookings-list">
                       {bookings.map((b) => (
-                        <Card key={b.id} className="p-3">
-                          <div className="flex items-center justify-between">
-                            <div className="text-left">
+                        <Card key={b.id} className="p-3 booking-item">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 booking-item-content">
+                            <div className="text-left flex-1">
                               <div className="font-medium">{b.guest_name}</div>
-                              <div className="text-sm text-muted-foreground">Заезд: {b.check_in_date || '-'} · Выезд: {b.check_out_date || '-'}</div>
+                              <div className="text-sm text-muted-foreground">
+                                <span className="block sm:inline">Заезд: {b.check_in_date || '-'}</span>
+                                <span className="hidden sm:inline"> · </span>
+                                <span className="block sm:inline">Выезд: {b.check_out_date || '-'}</span>
+                              </div>
                             </div>
-                            <div className="flex gap-1">
-                              <Button variant="ghost" size="sm" onClick={() => startEditBooking(b)}>
+                            <div className="flex gap-1 booking-actions w-full sm:w-auto">
+                              <Button variant="ghost" size="sm" onClick={() => startEditBooking(b)} className="flex-1 sm:flex-none">
                                 <Edit className="w-4 h-4" />
+                                <span className="ml-1 sm:hidden">Изменить</span>
                               </Button>
-                              <Button variant="ghost" size="sm" onClick={() => deleteBooking(b.id)}>
+                              <Button variant="ghost" size="sm" onClick={() => deleteBooking(b.id)} className="flex-1 sm:flex-none">
                                 <Trash2 className="w-4 h-4" />
+                                <span className="ml-1 sm:hidden">Удалить</span>
                               </Button>
                             </div>
                           </div>
                         </Card>
                       ))}
                       {bookings.length === 0 && (
-                        <div className="text-sm text-muted-foreground">Нет бронирований{formData.apartmentId ? ' для выбранного апартамента' : ''}.</div>
+                        <div className="text-sm text-muted-foreground p-4 text-center bg-muted rounded">Нет бронирований{formData.apartmentId ? ' для выбранного апартамента' : ''}.</div>
                       )}
                     </div>
                   </div>
@@ -666,9 +676,9 @@ const ManagerPanel = () => {
                   <Plus className="w-4 h-4 mr-2" /> Добавить апартамент
                 </Button>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 apartments-grid">
                 {apartments.map((a) => (
-                  <Card key={a.id} className="hover-lift">
+                  <Card key={a.id} className="hover-lift apartment-card-mobile">
                     <div className="p-4">
                       <div className="flex items-start justify-between">
                         <div>
@@ -700,12 +710,12 @@ const ManagerPanel = () => {
                 ))}
               </div>
               <Dialog open={showApartmentForm} onOpenChange={setShowApartmentForm}>
-                <DialogContent className="max-w-4xl max-h-[85vh] p-0 flex flex-col">
+                <DialogContent className="max-w-4xl max-h-[85vh] p-0 flex flex-col dialog-content-mobile">
                   <DialogHeader className="px-6 pt-6">
                     <DialogTitle>{selectedApartment?.id ? 'Редактировать апартамент' : 'Новый апартамент'}</DialogTitle>
                     <DialogDescription>Заполните поля карточки апартамента и прикрепите медиа.</DialogDescription>
                   </DialogHeader>
-                  <div className="flex-1 overflow-y-auto px-6 pb-2">
+                  <div className="flex-1 overflow-y-auto px-4 md:px-6 pb-2 dialog-scrollable">
                     <Tabs defaultValue="main" className="w-full">
                       <TabsList className="grid w-full grid-cols-3 mb-4">
                         <TabsTrigger value="main">Основное</TabsTrigger>
