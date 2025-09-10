@@ -175,26 +175,71 @@ const ApartmentLanding = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white guest-minimal overflow-x-hidden">
+    <div className="min-h-screen bg-white overflow-x-hidden">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Debug info - temporary for troubleshooting */}
+        <div className="bg-yellow-100 p-4 mb-4 rounded text-sm">
+          <p>Debug: Apartment loaded - {apartment ? 'Yes' : 'No'}</p>
+          <p>Guest: {guestName || 'No name'}</p>
+          <p>Check-in: {checkInDateRaw || 'No date'}</p>
+          <p>Apartment ID: {apartmentId || 'No ID'}</p>
+          <p>Loading state: {loading ? 'Loading' : 'Loaded'}</p>
+          <p>URL: {window.location.href}</p>
+        </div>
+        
+        {/* Simple test content */}
+        <div className="bg-blue-100 p-8 mb-8 rounded-lg text-center">
+          <h1 className="text-3xl font-bold text-blue-800 mb-4">
+            Тест страницы гостя
+          </h1>
+          <p className="text-blue-700">
+            Если вы видите этот текст, страница загружается правильно.
+          </p>
+        </div>
+        
         <div className="stagger-item">
-          <HeroSection 
-            title={apartment.hero_title}
-            subtitle={apartment.hero_subtitle}
-            apartmentNumber={apartment.number}
-          />
+          {(() => {
+            try {
+              return (
+                <HeroSection 
+                  title={apartment?.hero_title || 'АПАРТАМЕНТЫ MORENT'}
+                  subtitle={apartment?.hero_subtitle || 'Добро пожаловать!'}
+                  apartmentNumber={apartment?.number || 'N/A'}
+                />
+              );
+            } catch (error) {
+              logger.error('HeroSection render error:', error);
+              return <div className="p-4 bg-red-100 rounded">Ошибка загрузки Hero секции</div>;
+            }
+          })()}
         </div>
         
         <div className="py-4 md:py-8">
-          <WaveDivider />
+          {(() => {
+            try {
+              return <WaveDivider />;
+            } catch (error) {
+              logger.error('WaveDivider render error:', error);
+              return <div className="h-16"></div>; // Просто отступ вместо волн
+            }
+          })()}
         </div>
         
         <div className="stagger-item">
-          <WelcomeSection 
-            guestName={guestName}
-            checkInDate={checkInDateRaw}
-            apartmentId={apartment.id}
-          />
+          {(() => {
+            try {
+              return (
+                <WelcomeSection 
+                  guestName={guestName}
+                  checkInDate={checkInDateRaw}
+                  apartmentId={apartment?.id}
+                />
+              );
+            } catch (error) {
+              logger.error('WelcomeSection render error:', error);
+              return <div className="p-4 bg-red-100 rounded">Ошибка загрузки Welcome секции</div>;
+            }
+          })()}
         </div>
         
         <div className="py-8">

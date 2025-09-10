@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import heroImage from "@/assets/hero-image.jpg";
+// import heroImage from "@/assets/hero-image.jpg"; // Временно отключено для отладки
 
 interface HeroSectionProps {
   title?: string;
@@ -15,7 +15,8 @@ export const HeroSection = ({
   return (
     <Card className="relative overflow-hidden border-0 border-[hsl(var(--guest-navy))] border-opacity-20">
       <div className="relative h-[400px] bg-white border-b border-[hsl(var(--guest-navy))] border-opacity-20">
-        <img src={heroImage} alt="MORENT - Ваш дом у моря" loading="lazy" className="absolute inset-0 w-full h-full object-cover opacity-30" />
+        {/* <img src={heroImage} alt="MORENT - Ваш дом у моря" loading="lazy" className="absolute inset-0 w-full h-full object-cover opacity-30" /> */}
+        <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-blue-50 to-blue-100 opacity-30"></div>
         <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/60 to-white/40" />
         
         <div className="relative h-full flex flex-col items-center justify-end text-center px-6 pb-16">
