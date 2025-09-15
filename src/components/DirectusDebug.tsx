@@ -11,7 +11,7 @@ export const DirectusDebug: React.FC = () => {
   useEffect(() => {
     // Собираем информацию о конфигурации
     setDebugInfo({
-      directusUrl: DIRECTUS_URL,
+      directusUrl: DIRECTUS_URL || 'Not configured',
       hasToken: !!DIRECTUS_STATIC_TOKEN,
       tokenLength: DIRECTUS_STATIC_TOKEN?.length || 0,
       isProduction: import.meta.env.PROD,
@@ -24,6 +24,14 @@ export const DirectusDebug: React.FC = () => {
     const results: any = {};
 
     try {
+      // Проверяем, настроен ли Directus
+      if (!DIRECTUS_URL) {
+        results.error = 'Directus URL is not configured';
+        setTestResults(results);
+        setIsLoading(false);
+        return;
+      }
+
       // Тест 1: Проверка подключения к Directus
       logger.info('Testing Directus connection...');
       const serverInfo = await directus.request({

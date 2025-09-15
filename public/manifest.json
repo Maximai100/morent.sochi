@@ -1,6 +1,7 @@
 {
   "name": "MORENT - Гид гостя и панель менеджера",
   "short_name": "MORENT",
+  "version": "3.0.0",
   "description": "Персональный гид для гостей апартаментов MORENT в Сочи и панель управления для менеджеров",
   "start_url": "/",
   "display": "standalone",

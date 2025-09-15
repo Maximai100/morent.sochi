@@ -1,5 +1,5 @@
 // Service Worker для MORENT PWA
-const CACHE_NAME = 'morent-v2';
+const CACHE_NAME = 'morent-v3';
 const urlsToCache = [
   '/',
   '/manifest.json',
@@ -14,6 +14,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(urlsToCache))
+      .then(() => self.skipWaiting()) // Принудительно активируем новый SW
   );
 });
 
@@ -28,6 +29,9 @@ self.addEventListener('activate', event => {
           }
         })
       );
+    }).then(() => {
+      // Принудительно обновляем все открытые вкладки
+      return self.clients.claim();
     })
   );
 });

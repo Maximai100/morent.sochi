@@ -9,14 +9,24 @@ export const DIRECTUS_URL: string | undefined = (import.meta as any).env?.VITE_D
 export const DIRECTUS_STATIC_TOKEN: string | undefined = (import.meta as any).env?.VITE_DIRECTUS_STATIC_TOKEN
   || (!isProduction && typeof window !== 'undefined' ? (window as any).__DIRECTUS_TOKEN : undefined);
 
-if (!DIRECTUS_URL) {
-  throw new Error('Directus URL is not configured. Set VITE_DIRECTUS_URL.');
+// Создаем клиент только если URL настроен
+let client: any = null;
+
+if (DIRECTUS_URL) {
+  client = createDirectus(DIRECTUS_URL).with(rest());
+  if (DIRECTUS_STATIC_TOKEN) {
+    client = client.with(staticToken(DIRECTUS_STATIC_TOKEN));
+  }
+} else {
+  // Создаем заглушку для случаев, когда Directus не настроен
+  console.warn('Directus URL is not configured. Set VITE_DIRECTUS_URL.');
+  client = {
+    request: async () => {
+      throw new Error('Directus is not configured');
+    }
+  };
 }
 
-let client = createDirectus(DIRECTUS_URL).with(rest());
-if (DIRECTUS_STATIC_TOKEN) {
-  client = client.with(staticToken(DIRECTUS_STATIC_TOKEN));
-}
 export const directus = client;
 
 export type ApartmentRecord = {
