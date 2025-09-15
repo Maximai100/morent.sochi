@@ -2,8 +2,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Settings, Map } from "lucide-react";
-import DirectusDebug from "@/components/DirectusDebug";
-import BookingDebug from "@/components/BookingDebug";
+// import DirectusDebug from "@/components/DirectusDebug";
+// import BookingDebug from "@/components/BookingDebug";
 import "@/styles/minimal-guest.css";
 
 const Index = () => {
@@ -48,11 +48,11 @@ const Index = () => {
             </p>
           </div>
 
-          {/* Debug компоненты для диагностики */}
-          <div className="mt-8 space-y-8">
+          {/* Debug компоненты для диагностики - временно отключены */}
+          {/* <div className="mt-8 space-y-8">
             <DirectusDebug />
             <BookingDebug />
-          </div>
+          </div> */}
         </div>
       </Card>
     </div>
