@@ -323,6 +323,12 @@ export const MediaUpload = ({ category, title, onUploadSuccess, apartmentId, dir
                       src={file.url}
                       controls
                       className="w-full h-32 object-cover rounded mt-2"
+                      preload="metadata"
+                      poster={`${file.url}#t=0.1`}
+                      onLoadedMetadata={(e) => {
+                        const videoElement = e.target as HTMLVideoElement;
+                        videoElement.currentTime = 0.1;
+                      }}
                     />
                   )}
                 </Card>
