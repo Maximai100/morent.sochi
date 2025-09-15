@@ -95,45 +95,60 @@
     flex-direction: column;
     align-items: stretch;
     gap: 1rem;
-    padding: 1.25rem;
+    padding: 1rem;
+    margin: 0 -0.5rem; /* Убираем лишние отступы */
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 
   .apartment-list-actions {
-    justify-content: flex-end;
+    justify-content: space-between;
     border-top: 1px solid rgb(226 232 240);
     padding-top: 0.75rem;
     margin-top: 0.75rem;
-    gap: 0.75rem;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
   }
 
   .apartment-list-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.75rem;
+    gap: 0.5rem;
   }
 
   .apartment-list-title {
     white-space: normal;
     overflow: visible;
     text-overflow: unset;
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     line-height: 1.4;
+    margin-top: 0.5rem;
   }
 
   .apartment-list-address {
     white-space: normal;
     overflow: visible;
     text-overflow: unset;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     line-height: 1.4;
+    margin-top: 0.5rem;
   }
 
   /* Улучшенные кнопки действий */
   .apartment-list-actions button {
-    min-height: 44px;
-    padding: 0.75rem 1rem;
+    min-height: 48px;
+    min-width: 48px;
+    padding: 0.75rem;
     font-size: 0.875rem;
     border-radius: 0.5rem;
+    flex: 1;
+    justify-content: center;
+  }
+
+  /* Компактный номер апартамента */
+  .apartment-list-number {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
   }
 }
 
@@ -143,16 +158,34 @@
     justify-content: center;
   }
   
+  .apartment-list-item {
+    margin: 0 -1rem; /* Расширяем на всю ширину */
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+  
   .apartment-list-actions {
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    flex-wrap: nowrap;
+    gap: 0.25rem;
   }
   
   .apartment-list-actions button {
     flex: 1;
     min-width: 0;
     min-height: 48px;
+    padding: 0.5rem;
   }
+
+  /* Компактный заголовок */
+  .apartment-list-title {
+    font-size: 1rem;
+  }
+
+  .apartment-list-address {
+    font-size: 0.8rem;
+  }
+}
 
   /* Улучшенные карточки на очень маленьких экранах */
   .apartment-card {
