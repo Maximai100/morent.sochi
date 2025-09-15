@@ -5,6 +5,7 @@
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
+  "display_override": ["window-controls-overlay"],
   "background_color": "#FFFFFF",
   "theme_color": "#0C2D5A",
   "lang": "ru",

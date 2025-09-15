@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { useScrollFix } from "@/hooks/useScrollFix";
 
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -41,29 +42,37 @@ const queryClient = new QueryClient({
   },
 });
 
+const AppContent = () => {
+  useScrollFix(); // Применяем исправления скроллинга
+  
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/manager" element={
+              <ProtectedRoute>
+                <ManagerPanel />
+              </ProtectedRoute>
+            } />
+            <Route path="/guide" element={<CheckinGuide />} />
+            <Route path="/apartment/:apartmentId" element={<ApartmentLanding />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </AuthProvider>
+    </BrowserRouter>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/manager" element={
-                <ProtectedRoute>
-                  <ManagerPanel />
-                </ProtectedRoute>
-              } />
-              <Route path="/guide" element={<CheckinGuide />} />
-              <Route path="/apartment/:apartmentId" element={<ApartmentLanding />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </AuthProvider>
-      </BrowserRouter>
+      <AppContent />
     </TooltipProvider>
   </QueryClientProvider>
 );

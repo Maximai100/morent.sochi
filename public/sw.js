@@ -1,10 +1,12 @@
 // Service Worker для MORENT PWA
-const CACHE_NAME = 'morent-v1';
+const CACHE_NAME = 'morent-v2';
 const urlsToCache = [
   '/',
   '/manifest.json',
   '/favicon.ico',
-  '/hero-image.jpg'
+  '/hero-image.jpg',
+  '/icon-192x192.png',
+  '/icon-512x512.png'
 ];
 
 // Установка service worker
@@ -46,5 +48,20 @@ self.addEventListener('fetch', event => {
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
+  }
+});
+
+// PWA scrolling improvements
+self.addEventListener('fetch', event => {
+  // Add scrolling headers for better PWA experience
+  if (event.request.destination === 'document') {
+    event.respondWith(
+      fetch(event.request).then(response => {
+        const newResponse = response.clone();
+        newResponse.headers.set('X-Content-Type-Options', 'nosniff');
+        newResponse.headers.set('X-Frame-Options', 'DENY');
+        return newResponse;
+      })
+    );
   }
 });

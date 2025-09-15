@@ -14,6 +14,11 @@ export const apartmentSchema = z.object({
   
   building_number: z.string().optional().nullable(),
   
+  housing_complex: z.string()
+    .max(100, 'Название ЖК не должно превышать 100 символов')
+    .optional()
+    .nullable(),
+  
   base_address: z.string()
     .max(200, 'Адрес не должен превышать 200 символов')
     .optional()

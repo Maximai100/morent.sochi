@@ -26,6 +26,7 @@ export type ApartmentRecord = {
   title: string | null;
   apartment_number: string | null;
   building_number: string | null;
+  housing_complex: string | null;
   base_address: string | null;
   description: string | null;
   photos: any;

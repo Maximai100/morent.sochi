@@ -1,0 +1,213 @@
+/* Стили для компонента ApartmentViewToggle */
+
+/* Переключатель вида */
+.view-toggle {
+  display: flex;
+  align-items: center;
+  border: 1px solid rgb(226 232 240);
+  border-radius: 0.5rem;
+  padding: 0.25rem;
+  background: white;
+}
+
+.view-toggle button {
+  transition: all 0.15s ease;
+  border-radius: 0.375rem;
+}
+
+.view-toggle button:hover {
+  background-color: rgb(248 250 252);
+}
+
+.view-toggle button[data-state="active"] {
+  background-color: rgb(15 23 42);
+  color: white;
+}
+
+/* Список апартаментов */
+.apartment-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border: 1px solid rgb(226 232 240);
+  border-radius: 0.5rem;
+  background: white;
+  transition: background-color 0.15s ease;
+}
+
+.apartment-list-item:hover {
+  background-color: rgb(248 250 252);
+}
+
+.apartment-list-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.apartment-list-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.apartment-list-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: rgb(15 23 42);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.apartment-list-address {
+  font-size: 0.875rem;
+  color: rgb(71 85 105);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.apartment-list-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* Номер апартамента в списке */
+.apartment-list-number {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  border: 2px solid rgb(var(--gold) / 0.6);
+  background: rgb(var(--gold) / 0.1);
+  color: rgb(var(--gold));
+  font-weight: 700;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+/* Адаптация для мобильных устройств */
+@media (max-width: 768px) {
+  .apartment-list-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .apartment-list-actions {
+    justify-content: flex-end;
+    border-top: 1px solid rgb(226 232 240);
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+  }
+
+  .apartment-list-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .apartment-list-title {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+  }
+
+  .apartment-list-address {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+  }
+}
+
+@media (max-width: 640px) {
+  .view-toggle {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .apartment-list-actions {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  
+  .apartment-list-actions button {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+/* Пустое состояние */
+.apartment-empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.apartment-empty-icon {
+  color: rgb(148 163 184);
+  margin-bottom: 1rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.apartment-empty-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: rgb(71 85 105);
+  margin-bottom: 0.5rem;
+}
+
+.apartment-empty-description {
+  color: rgb(100 116 139);
+  margin-bottom: 1rem;
+}
+
+/* Заголовок с переключателем */
+.apartment-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.apartment-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.apartment-header-count {
+  font-size: 0.875rem;
+  color: rgb(100 116 139);
+}
+
+.apartment-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .apartment-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .apartment-header-controls {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .view-toggle {
+    order: 1;
+  }
+  
+  .apartment-header button[variant="default"] {
+    order: 2;
+    width: 100%;
+  }
+}

@@ -7,6 +7,7 @@ export interface Apartment {
   title: string;
   apartment_number: string;
   building_number?: string | null;
+  housing_complex?: string | null;
   base_address?: string | null;
   description?: string | null;
   photos?: any;
@@ -29,6 +30,7 @@ export interface CreateApartmentDto {
   title: string;
   apartment_number: string;
   building_number?: string | null;
+  housing_complex?: string | null;
   base_address?: string | null;
   description?: string | null;
   wifi_name?: string | null;
@@ -143,6 +145,7 @@ class ApartmentService {
       title: record.title || '',
       apartment_number: record.apartment_number || '',
       building_number: record.building_number,
+      housing_complex: record.housing_complex,
       base_address: record.base_address,
       description: record.description,
       photos: record.photos,
@@ -170,6 +173,7 @@ class ApartmentService {
       title: data.title,
       apartment_number: data.apartment_number,
       building_number: data.building_number,
+      housing_complex: data.housing_complex,
       base_address: data.base_address,
       description: data.description,
       wifi_name: data.wifi_name,

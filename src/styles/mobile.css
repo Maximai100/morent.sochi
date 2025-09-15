@@ -7,14 +7,38 @@
     max-width: 100% !important;
     width: 100% !important;
     height: 100vh !important;
+    height: -webkit-fill-available !important;
     margin: 0 !important;
     border-radius: 0 !important;
     max-height: 100vh !important;
+    max-height: -webkit-fill-available !important;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
   }
 
   /* Adjust dialog content for mobile */
   [role="dialog"] .overflow-y-auto {
     max-height: calc(100vh - 120px) !important;
+    max-height: calc(-webkit-fill-available - 120px) !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: auto;
+  }
+  
+  /* Modal scrolling container */
+  [role="dialog"] .dialog-scrollable {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: auto;
   }
 
   /* Full-width buttons on mobile */
@@ -144,46 +168,20 @@
   touch-action: manipulation;
 }
 
-/* Prevent horizontal scroll */
-body {
-  overflow-x: hidden;
-}
+/* Scrolling fixes moved to scroll-fix.css */
 
-.min-h-screen {
-  min-height: 100vh;
-  min-height: -webkit-fill-available;
-}
-
-/* iOS specific fixes */
+/* iOS specific fixes - simplified */
 @supports (-webkit-touch-callout: none) {
-  /* iOS viewport height fix */
-  .h-screen {
-    height: -webkit-fill-available;
-  }
-
   /* iOS safe area insets */
   .safe-area-inset {
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
     padding-bottom: env(safe-area-inset-bottom);
-  }
-
-  /* Prevent iOS zoom on input focus */
-  input,
-  select,
-  textarea {
-    font-size: 16px !important;
+    padding-top: env(safe-area-inset-top);
   }
 }
 
-/* Android specific fixes */
-@media screen and (-webkit-min-device-pixel-ratio: 0) {
-  input:focus,
-  select:focus,
-  textarea:focus {
-    font-size: 16px !important;
-  }
-}
+/* Android specific fixes moved to scroll-fix.css */
 
 /* Responsive images */
 img {

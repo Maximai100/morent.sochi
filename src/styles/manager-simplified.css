@@ -1,0 +1,191 @@
+/* Упрощенные стили для панели менеджера - без анимаций */
+
+/* Убираем все анимации и переходы */
+* {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Упрощенные кнопки */
+button {
+  transition: background-color 0.1s ease !important;
+}
+
+button:hover {
+  transition: background-color 0.1s ease !important;
+}
+
+/* Упрощенные карточки */
+.card {
+  transition: none !important;
+}
+
+.card:hover {
+  transition: none !important;
+}
+
+/* Упрощенные модальные окна */
+[role="dialog"] {
+  transition: none !important;
+}
+
+[role="dialog"] > div {
+  transition: none !important;
+}
+
+/* Упрощенные табы */
+[role="tablist"] {
+  transition: none !important;
+}
+
+[role="tab"] {
+  transition: none !important;
+}
+
+[role="tab"]:hover {
+  transition: none !important;
+}
+
+/* Упрощенные поля ввода */
+input,
+textarea,
+select {
+  transition: border-color 0.1s ease !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  transition: border-color 0.1s ease !important;
+}
+
+/* Упрощенные попапы */
+[role="tooltip"],
+[role="popover"] {
+  transition: none !important;
+}
+
+/* Убираем hover эффекты для производительности */
+.hover-lift:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.hover-glow:hover {
+  box-shadow: none !important;
+}
+
+.btn-premium:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Упрощенные анимации загрузки */
+.loading {
+  animation: none !important;
+}
+
+.spinner {
+  animation: none !important;
+}
+
+/* Убираем все keyframes анимации */
+@keyframes fadeIn {
+  from { opacity: 1; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { transform: translateY(0); }
+  to { transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(1); }
+  to { transform: scale(1); }
+}
+
+/* Упрощенные переходы для модальных окон */
+.dialog-content {
+  transition: none !important;
+}
+
+.dialog-overlay {
+  transition: none !important;
+}
+
+/* Убираем анимации для списков */
+.list-item {
+  transition: none !important;
+}
+
+.list-item:hover {
+  transition: none !important;
+}
+
+/* Упрощенные переходы для форм */
+.form-group {
+  transition: none !important;
+}
+
+.form-field {
+  transition: border-color 0.1s ease !important;
+}
+
+/* Убираем анимации для карточек апартаментов */
+.apartment-card {
+  transition: none !important;
+}
+
+.apartment-card:hover {
+  transition: none !important;
+}
+
+/* Упрощенные переходы для бронирований */
+.booking-item {
+  transition: none !important;
+}
+
+.booking-item:hover {
+  transition: none !important;
+}
+
+/* Убираем анимации для кнопок действий */
+.action-button {
+  transition: background-color 0.1s ease !important;
+}
+
+.action-button:hover {
+  transition: background-color 0.1s ease !important;
+}
+
+/* Упрощенные переходы для навигации */
+.nav-item {
+  transition: none !important;
+}
+
+.nav-item:hover {
+  transition: none !important;
+}
+
+/* Убираем анимации для уведомлений */
+.toast {
+  transition: none !important;
+}
+
+.notification {
+  transition: none !important;
+}
+
+/* Упрощенные переходы для выпадающих меню */
+.dropdown {
+  transition: none !important;
+}
+
+.dropdown-item {
+  transition: none !important;
+}
+
+.dropdown-item:hover {
+  transition: none !important;
+}

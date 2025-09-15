@@ -15,6 +15,9 @@ All colors MUST be HSL.
     /* Brand Foundation - Premium Seaside */
     --background: 42 33% 97%; /* #F7F4EF Sandy */
     --foreground: 222 84% 5%;
+    
+    /* Viewport height fix for mobile */
+    --vh: 1vh;
 
     --card: 0 0% 100%;
     --card-foreground: 222 84% 5%;
@@ -40,12 +43,12 @@ All colors MUST be HSL.
     --muted: 42 15% 92%;
     --muted-foreground: 210 15% 50%;
 
-    /* Sun Accent - #FDBB3B Gold Strategic */
-    --accent: 42 93% 60%;
-    --accent-foreground: 222 84% 5%;
-    --gold: 42 98% 62%;
-    --gold-light: 42 85% 75%;
-    --gold-dark: 42 100% 48%;
+    /* Blue Accent - синие оттенки как на странице гостя */
+    --accent: 211 70% 35%;
+    --accent-foreground: 0 0% 100%;
+    --gold: 211 60% 50%;
+    --gold-light: 211 50% 65%;
+    --gold-dark: 211 85% 24%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
@@ -58,7 +61,7 @@ All colors MUST be HSL.
 
     /* Gradients */
     --gradient-ocean: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
-    --gradient-sunset: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--secondary)));
+    --gradient-sunset: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--primary-light)));
     --gradient-wave: linear-gradient(180deg, hsl(var(--primary) / 0.1), transparent);
 
     /* Enhanced Shadows */
@@ -131,11 +134,6 @@ All colors MUST be HSL.
 }
 
 @layer base {
-  html, body {
-    height: 100%;
-    overflow-y: auto;
-  }
-
   * {
     @apply border-border;
   }
@@ -155,26 +153,17 @@ All colors MUST be HSL.
     @apply backdrop-blur-2xl bg-white/80 border border-white/30 shadow-premium;
   }
 
-  /* Enhanced Interactive Elements */
+  /* Simplified Interactive Elements - animations removed for performance */
   .hover-lift {
-    @apply transition-all duration-300 ease-out hover:scale-105 hover:-translate-y-1 hover:shadow-premium;
+    @apply transition-colors duration-150;
   }
 
   .hover-glow {
-    @apply transition-all duration-300 ease-out hover:shadow-glow;
+    @apply transition-colors duration-150;
   }
 
   .btn-premium {
-    @apply relative overflow-hidden bg-gradient-ocean text-white font-medium rounded-xl px-6 py-3 shadow-ocean transition-all duration-300 hover:scale-105 hover:shadow-premium;
-  }
-
-  .btn-premium::before {
-    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full transition-transform duration-700;
-    content: '';
-  }
-
-  .btn-premium:hover::before {
-    @apply translate-x-full;
+    @apply bg-gradient-ocean text-white font-medium rounded-xl px-6 py-3 shadow-ocean transition-colors duration-150;
   }
 
   /* Typography Enhancements */
@@ -195,9 +184,9 @@ All colors MUST be HSL.
     @apply skeleton h-12 w-12 rounded-full;
   }
 
-  /* Copy Button Enhancement & Code Button Pulse */
+  /* Simplified Copy Button - animation removed */
   .copy-success {
-    @apply animate-scale-in bg-emerald-500 text-white;
+    @apply bg-emerald-500 text-white;
   }
   
   .pulse-code {
@@ -222,18 +211,11 @@ All colors MUST be HSL.
   .state-success { @apply border-emerald-500 bg-emerald-50 text-emerald-700; }
   
   /* Stagger Animation */
+  /* Stagger animations removed for performance */
   .stagger-item {
-    /* @apply opacity-0 translate-y-8; */
-    /* animation: fade-in 0.6s ease-out forwards; */
-    opacity: 1; /* Set to visible */
-    transform: translateY(0); /* Set to final position */
+    opacity: 1;
+    transform: translateY(0);
   }
-  .stagger-item:nth-child(1) { animation-delay: 0.1s; }
-  .stagger-item:nth-child(2) { animation-delay: 0.2s; }
-  .stagger-item:nth-child(3) { animation-delay: 0.3s; }
-  .stagger-item:nth-child(4) { animation-delay: 0.4s; }
-  .stagger-item:nth-child(5) { animation-delay: 0.5s; }
-  .stagger-item:nth-child(6) { animation-delay: 0.6s; }
   
   /* Wave Divider */
   .wave-divider {

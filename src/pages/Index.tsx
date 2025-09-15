@@ -1,7 +1,9 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Settings, FileText, Map } from "lucide-react";
+import { Settings, Map } from "lucide-react";
+import DirectusDebug from "@/components/DirectusDebug";
+import BookingDebug from "@/components/BookingDebug";
 import "@/styles/minimal-guest.css";
 
 const Index = () => {
@@ -19,11 +21,11 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-1 gap-4 mb-8">
             <Link to="/manager" className="group">
               <Button 
                 variant="outline" 
-                className="w-full h-auto p-6 border-2 border-slate-800 hover:bg-slate-800 hover:text-white transition-all duration-300 flex flex-col gap-3"
+                className="w-full h-auto p-6 border-2 border-slate-800 hover:bg-slate-800 hover:text-white transition-colors duration-100 flex flex-col gap-3"
               >
                 <Settings className="w-12 h-12" />
                 <div>
@@ -33,18 +35,7 @@ const Index = () => {
               </Button>
             </Link>
 
-            <Link to="/guide" className="group">
-              <Button 
-                variant="outline" 
-                className="w-full h-auto p-6 border-2 border-slate-800 hover:bg-slate-800 hover:text-white transition-all duration-300 flex flex-col gap-3"
-              >
-                <FileText className="w-12 h-12" />
-                <div>
-                  <p className="text-lg font-bold">Инструкция для гостя</p>
-                  <p className="text-sm opacity-75">Демо-версия</p>
-                </div>
-              </Button>
-            </Link>
+            {/* Демо-версия удалена */}
           </div>
 
           <div className="p-4 border border-slate-300 rounded-lg bg-slate-50">
@@ -55,6 +46,12 @@ const Index = () => {
             <p className="text-sm text-slate-600 font-inter">
               Ваш дом у моря в любой момент!
             </p>
+          </div>
+
+          {/* Debug компоненты для диагностики */}
+          <div className="mt-8 space-y-8">
+            <DirectusDebug />
+            <BookingDebug />
           </div>
         </div>
       </Card>

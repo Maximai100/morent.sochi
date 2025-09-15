@@ -30,16 +30,19 @@ class BookingService {
     try {
       logger.api('GET', '/bookings', { apartmentId });
       
-      const filter = apartmentId 
-        ? { apartment_id: { _eq: apartmentId } } as any
-        : undefined;
+      // Строим параметры запроса
+      const queryParams: any = {
+        sort: ['-date_created'],
+        limit: 50,
+      };
+
+      // Добавляем фильтр только если apartmentId задан
+      if (apartmentId) {
+        queryParams.filter = { apartment_id: { _eq: apartmentId } };
+      }
 
       const items = await directus.request(
-        readItems<BookingRecord>('bookings', {
-          sort: ['-date_created'],
-          filter,
-          limit: 50,
-        })
+        readItems<BookingRecord>('bookings', queryParams)
       );
       
       return (items || []).map(this.mapToBooking);
