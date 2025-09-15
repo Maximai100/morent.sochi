@@ -251,3 +251,37 @@
     font-weight: 600;
   }
 }
+
+/* Стили для Dialog календаря на мобильных */
+@media (max-width: 768px) {
+  .mobile-calendar {
+    padding: 1rem;
+  }
+  
+  .mobile-calendar .rdp-button {
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 0.875rem;
+    border-radius: 0.5rem;
+    touch-action: manipulation;
+  }
+  
+  .mobile-calendar .rdp-day {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  .mobile-calendar .rdp-caption {
+    padding: 1rem 0;
+  }
+  
+  .mobile-calendar .rdp-caption_label {
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+  
+  .mobile-calendar .rdp-nav_button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

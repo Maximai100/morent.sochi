@@ -39,6 +39,8 @@ const ManagerPanel = () => {
   });
   const [checkInDate, setCheckInDate] = useState<Date | undefined>(undefined);
   const [checkOutDate, setCheckOutDate] = useState<Date | undefined>(undefined);
+  const [showCheckInCalendar, setShowCheckInCalendar] = useState(false);
+  const [showCheckOutCalendar, setShowCheckOutCalendar] = useState(false);
 
   // Bookings list & editing
   const [editingBookingId, setEditingBookingId] = useState<string | null>(null);
@@ -771,25 +773,41 @@ const ManagerPanel = () => {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label>Дата заезда</Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button variant="outline" className="w-full justify-start gap-2">
-                              <CalendarIcon className="w-4 h-4" />
-                              {checkInDate ? format(checkInDate, 'dd.MM.yyyy') : 'Выбрать дату'}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="p-0 w-auto max-w-[95vw] sm:w-auto sm:max-w-none overflow-hidden" side="bottom" align="center" sideOffset={8}>
-                            <Calendar
-                              mode="single"
-                              selected={checkInDate}
-                              onSelect={(d) => {
-                                setCheckInDate(d);
-                                if (d) updateFormData('checkIn', format(d, 'dd.MM.yyyy'));
-                              }}
-                              className="mobile-calendar w-full"
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        {/* Desktop: Popover */}
+                        <div className="hidden sm:block">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" className="w-full justify-start gap-2">
+                                <CalendarIcon className="w-4 h-4" />
+                                {checkInDate ? format(checkInDate, 'dd.MM.yyyy') : 'Выбрать дату'}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="p-0 w-auto overflow-hidden" side="bottom" align="center" sideOffset={8}>
+                              <Calendar
+                                mode="single"
+                                selected={checkInDate}
+                                onSelect={(d) => {
+                                  setCheckInDate(d);
+                                  if (d) updateFormData('checkIn', format(d, 'dd.MM.yyyy'));
+                                }}
+                                className="w-full"
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                        
+                        {/* Mobile: Dialog */}
+                        <div className="block sm:hidden">
+                          <Button 
+                            variant="outline" 
+                            className="w-full justify-start gap-2"
+                            onClick={() => setShowCheckInCalendar(true)}
+                          >
+                            <CalendarIcon className="w-4 h-4" />
+                            {checkInDate ? format(checkInDate, 'dd.MM.yyyy') : 'Выбрать дату'}
+                          </Button>
+                        </div>
+                        
                         {errors.checkIn && (
                           <div className="flex items-center gap-1 text-destructive text-sm mt-1">
                             <AlertCircle className="w-4 h-4" />
@@ -799,25 +817,41 @@ const ManagerPanel = () => {
                       </div>
                       <div>
                         <Label>Дата выезда</Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button variant="outline" className="w-full justify-start gap-2">
-                              <CalendarIcon className="w-4 h-4" />
-                              {checkOutDate ? format(checkOutDate, 'dd.MM.yyyy') : 'Выбрать дату'}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="p-0 w-auto max-w-[95vw] sm:w-auto sm:max-w-none overflow-hidden" side="bottom" align="center" sideOffset={8}>
-                            <Calendar
-                              mode="single"
-                              selected={checkOutDate}
-                              onSelect={(d) => {
-                                setCheckOutDate(d);
-                                if (d) updateFormData('checkOut', format(d, 'dd.MM.yyyy'));
-                              }}
-                              className="mobile-calendar w-full"
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        {/* Desktop: Popover */}
+                        <div className="hidden sm:block">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" className="w-full justify-start gap-2">
+                                <CalendarIcon className="w-4 h-4" />
+                                {checkOutDate ? format(checkOutDate, 'dd.MM.yyyy') : 'Выбрать дату'}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="p-0 w-auto overflow-hidden" side="bottom" align="center" sideOffset={8}>
+                              <Calendar
+                                mode="single"
+                                selected={checkOutDate}
+                                onSelect={(d) => {
+                                  setCheckOutDate(d);
+                                  if (d) updateFormData('checkOut', format(d, 'dd.MM.yyyy'));
+                                }}
+                                className="w-full"
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                        
+                        {/* Mobile: Dialog */}
+                        <div className="block sm:hidden">
+                          <Button 
+                            variant="outline" 
+                            className="w-full justify-start gap-2"
+                            onClick={() => setShowCheckOutCalendar(true)}
+                          >
+                            <CalendarIcon className="w-4 h-4" />
+                            {checkOutDate ? format(checkOutDate, 'dd.MM.yyyy') : 'Выбрать дату'}
+                          </Button>
+                        </div>
+                        
                         {errors.checkOut && (
                           <div className="flex items-center gap-1 text-destructive text-sm mt-1">
                             <AlertCircle className="w-4 h-4" />
@@ -986,6 +1020,43 @@ const ManagerPanel = () => {
           </Tabs>
         </Card>
       </div>
+
+      {/* Mobile Calendar Dialogs */}
+      <Dialog open={showCheckInCalendar} onOpenChange={setShowCheckInCalendar}>
+        <DialogContent className="max-w-sm mx-auto">
+          <DialogHeader>
+            <DialogTitle>Выберите дату заезда</DialogTitle>
+          </DialogHeader>
+          <Calendar
+            mode="single"
+            selected={checkInDate}
+            onSelect={(d) => {
+              setCheckInDate(d);
+              if (d) updateFormData('checkIn', format(d, 'dd.MM.yyyy'));
+              setShowCheckInCalendar(false);
+            }}
+            className="mobile-calendar w-full"
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showCheckOutCalendar} onOpenChange={setShowCheckOutCalendar}>
+        <DialogContent className="max-w-sm mx-auto">
+          <DialogHeader>
+            <DialogTitle>Выберите дату выезда</DialogTitle>
+          </DialogHeader>
+          <Calendar
+            mode="single"
+            selected={checkOutDate}
+            onSelect={(d) => {
+              setCheckOutDate(d);
+              if (d) updateFormData('checkOut', format(d, 'dd.MM.yyyy'));
+              setShowCheckOutCalendar(false);
+            }}
+            className="mobile-calendar w-full"
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
