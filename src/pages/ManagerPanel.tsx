@@ -778,7 +778,7 @@ const ManagerPanel = () => {
                               {checkInDate ? format(checkInDate, 'dd.MM.yyyy') : 'Выбрать дату'}
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="p-0 w-auto max-w-[95vw] sm:w-auto sm:max-w-none overflow-hidden">
+                          <PopoverContent className="p-0 w-auto max-w-[95vw] sm:w-auto sm:max-w-none overflow-hidden" side="bottom" align="center" sideOffset={8}>
                             <Calendar
                               mode="single"
                               selected={checkInDate}
@@ -806,7 +806,7 @@ const ManagerPanel = () => {
                               {checkOutDate ? format(checkOutDate, 'dd.MM.yyyy') : 'Выбрать дату'}
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="p-0 w-auto max-w-[95vw] sm:w-auto sm:max-w-none">
+                          <PopoverContent className="p-0 w-auto max-w-[95vw] sm:w-auto sm:max-w-none overflow-hidden" side="bottom" align="center" sideOffset={8}>
                             <Calendar
                               mode="single"
                               selected={checkOutDate}
@@ -814,7 +814,7 @@ const ManagerPanel = () => {
                                 setCheckOutDate(d);
                                 if (d) updateFormData('checkOut', format(d, 'dd.MM.yyyy'));
                               }}
-                              className="mobile-calendar"
+                              className="mobile-calendar w-full"
                             />
                           </PopoverContent>
                         </Popover>

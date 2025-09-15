@@ -43,8 +43,28 @@
 
   /* Full-width buttons on mobile */
   .touch-target {
+    min-height: 48px;
+    min-width: 48px;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    border-radius: 0.5rem;
+  }
+
+  /* Улучшенные кнопки для мобильных */
+  button {
     min-height: 44px;
-    min-width: 44px;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    border-radius: 0.5rem;
+    touch-action: manipulation;
+  }
+
+  /* Улучшенные поля ввода */
+  input, textarea, select {
+    min-height: 48px;
+    padding: 0.75rem 1rem;
+    font-size: 16px; /* Предотвращает zoom на iOS */
+    border-radius: 0.5rem;
   }
 
   /* Stack form fields on mobile */

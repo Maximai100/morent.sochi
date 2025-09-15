@@ -216,3 +216,38 @@
     font-size: 0.75rem;
   }
 }
+
+/* Улучшенные стили для Popover календаря */
+@media (max-width: 768px) {
+  [data-radix-popper-content-wrapper] {
+    width: auto !important;
+    max-width: calc(100vw - 2rem) !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+  
+  .mobile-calendar {
+    padding: 0.5rem;
+  }
+  
+  .mobile-calendar .rdp-button {
+    min-width: 40px;
+    min-height: 40px;
+    font-size: 0.875rem;
+    border-radius: 0.375rem;
+  }
+  
+  .mobile-calendar .rdp-day {
+    min-width: 40px;
+    min-height: 40px;
+  }
+  
+  .mobile-calendar .rdp-caption {
+    padding: 0.5rem 0;
+  }
+  
+  .mobile-calendar .rdp-caption_label {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+}
