@@ -221,7 +221,7 @@ const ApartmentLanding = () => {
             wifiName={apartment.wifi_name || 'Название не указано'}
             buildingNumber={apartment.building_number || 'Б'}
             address={`${apartment.address || 'Нагорный тупик 13'} ${apartment.building_number || 'Б'}`}
-            entranceInfo={`${apartment.entrance_number || '2-й подъезд'} ${apartment.floor_number || '10 этаж'}`}
+            entranceInfo={`${apartment.entrance_number || ''} ${apartment.floor_number || ''}`.trim()}
           />
         </div>
         

@@ -27,7 +27,7 @@ export const ApartmentInfo = ({
   wifiName = "Название сети",
   buildingNumber = "Б",
   address = "ул. Нагорный тупик 13Б",
-  entranceInfo = "2-й подъезд 10 этаж"
+  entranceInfo = ""
 }: ApartmentInfoProps) => {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const { toast } = useToast();
@@ -66,9 +66,11 @@ export const ApartmentInfo = ({
         </div>
         
         <div className="bg-gradient-to-r from-[hsl(var(--guest-navy))]/20 to-[hsl(var(--guest-navy))]/20 rounded-xl p-6 border-2 border-[hsl(var(--guest-navy))]/30 text-center">
-          <p className="font-bold text-primary-dark text-lg mb-2">
-            {entranceInfo}
-          </p>
+          {entranceInfo && (
+            <p className="font-bold text-primary-dark text-lg mb-2">
+              {entranceInfo}
+            </p>
+          )}
           <p className="font-bold text-[hsl(var(--guest-navy))] text-2xl">
             Апартаменты {apartmentNumber}
           </p>
