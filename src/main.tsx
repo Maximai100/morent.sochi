@@ -30,4 +30,20 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+// Обработка ошибок приложения
+window.addEventListener('error', (event) => {
+  console.error('Application error:', event.error);
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled promise rejection:', event.reason);
+});
+
+// Проверяем, что root элемент существует
+const rootElement = document.getElementById("root");
+if (!rootElement) {
+  console.error('Root element not found!');
+  document.body.innerHTML = '<div style="padding: 20px; text-align: center;"><h1>Ошибка загрузки приложения</h1><p>Не удалось найти корневой элемент</p></div>';
+} else {
+  createRoot(rootElement).render(<App />);
+}
