@@ -5,12 +5,14 @@ interface HeroSectionProps {
   title?: string;
   subtitle?: string;
   apartmentNumber?: string;
+  buildingNumber?: string;
 }
 
 export const HeroSection = ({
   title = "АПАРТАМЕНТЫ МОРЕНТ",
   subtitle = "Ваш комфортный дом вдали от дома",
-  apartmentNumber = "169"
+  apartmentNumber = "169",
+  buildingNumber = "Б"
 }: HeroSectionProps) => {
   return (
     <Card className="relative overflow-hidden border-0 border-[hsl(var(--guest-navy))] border-opacity-20">

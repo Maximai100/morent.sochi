@@ -56,6 +56,7 @@ const ManagerPanel = () => {
     building_number: '',
     housing_complex: '',
     address: '',
+    description: '',
     wifi_password: '',
     entrance_code: '',
     lock_code: '',
@@ -65,7 +66,9 @@ const ManagerPanel = () => {
     faq_checkin: '',
     faq_apartment: '',
     faq_area: '',
-    map_embed_code: ''
+    map_embed_code: '',
+    entrance_number: '',
+    floor_number: ''
   });
 
   useEffect(() => {
@@ -511,6 +514,8 @@ const ManagerPanel = () => {
           faq_apartment: apartmentForm.faq_apartment || null,
           faq_area: apartmentForm.faq_area || null,
           map_embed_code: apartmentForm.map_embed_code || null,
+          entrance_number: apartmentForm.entrance_number || null,
+          floor_number: apartmentForm.floor_number || null,
         }));
         toast({ title: 'Апартамент обновлён' });
       } else {
@@ -531,6 +536,8 @@ const ManagerPanel = () => {
           faq_apartment: apartmentForm.faq_apartment || null,
           faq_area: apartmentForm.faq_area || null,
           map_embed_code: apartmentForm.map_embed_code || null,
+          entrance_number: apartmentForm.entrance_number || null,
+          floor_number: apartmentForm.floor_number || null,
         }));
         toast({ title: 'Апартамент создан' });
       }
@@ -556,7 +563,7 @@ const ManagerPanel = () => {
       setApartments(mapped);
       setShowApartmentForm(false);
       setSelectedApartment(null);
-      setApartmentForm({ name: '', number: '', building_number: '', housing_complex: '', address: '', wifi_password: '', entrance_code: '', lock_code: '', manager_name: '', manager_phone: '', manager_email: '', faq_checkin: '', faq_apartment: '', faq_area: '', map_embed_code: '' });
+      setApartmentForm({ name: '', number: '', building_number: '', housing_complex: '', address: '', description: '', wifi_password: '', entrance_code: '', lock_code: '', manager_name: '', manager_phone: '', manager_email: '', faq_checkin: '', faq_apartment: '', faq_area: '', map_embed_code: '', entrance_number: '', floor_number: '' });
     } catch (e) {
       toast({ title: 'Ошибка сохранения', variant: 'destructive' });
     }
@@ -572,6 +579,7 @@ const ManagerPanel = () => {
         building_number: full.building_number || '',
         housing_complex: full.housing_complex || '',
         address: full.base_address || '',
+        description: full.description || '',
         wifi_password: full.wifi_password || '',
         entrance_code: full.code_building || '',
         lock_code: full.code_lock || '',
@@ -582,6 +590,8 @@ const ManagerPanel = () => {
         faq_apartment: full.faq_apartment || '',
         faq_area: full.faq_area || '',
         map_embed_code: full.map_embed_code || '',
+        entrance_number: full.entrance_number || '',
+        floor_number: full.floor_number || '',
       });
       setShowApartmentForm(true);
     } catch (e) {
@@ -992,6 +1002,7 @@ const ManagerPanel = () => {
                     building_number: '', 
                     housing_complex: '',
                     address: '', 
+                    description: '',
                     wifi_password: '', 
                     entrance_code: '', 
                     lock_code: '',
@@ -1001,7 +1012,9 @@ const ManagerPanel = () => {
                     faq_checkin: '',
                     faq_apartment: '',
                     faq_area: '',
-                    map_embed_code: ''
+                    map_embed_code: '',
+                    entrance_number: '',
+                    floor_number: ''
                   });
                   setShowApartmentForm(true);
                 }}

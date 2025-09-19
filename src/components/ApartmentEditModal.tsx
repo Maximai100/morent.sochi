@@ -18,6 +18,7 @@ interface ApartmentForm {
   building_number: string;
   housing_complex: string;
   address: string;
+  description: string;
   wifi_password: string;
   entrance_code: string;
   lock_code: string;
@@ -28,6 +29,8 @@ interface ApartmentForm {
   faq_apartment: string;
   faq_area: string;
   map_embed_code: string;
+  entrance_number: string;
+  floor_number: string;
 }
 
 interface ApartmentEditModalProps {
@@ -167,6 +170,29 @@ export const ApartmentEditModal: React.FC<ApartmentEditModalProps> = ({
                         value={apartmentForm.lock_code}
                         onChange={(e) => updateForm('lock_code', e.target.value)}
                         placeholder="1111"
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                      <Label htmlFor="entrance_number">Подъезд</Label>
+                      <Input
+                        id="entrance_number"
+                        value={apartmentForm.entrance_number}
+                        onChange={(e) => updateForm('entrance_number', e.target.value)}
+                        placeholder="2-й подъезд"
+                        className="w-full"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="floor_number">Этаж</Label>
+                      <Input
+                        id="floor_number"
+                        value={apartmentForm.floor_number}
+                        onChange={(e) => updateForm('floor_number', e.target.value)}
+                        placeholder="10 этаж"
                         className="w-full"
                       />
                     </div>

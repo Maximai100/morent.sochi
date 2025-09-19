@@ -53,6 +53,8 @@ export type ApartmentRecord = {
   manager_name: string | null;
   manager_phone: string | null;
   manager_email: string | null;
+  entrance_number: string | null;
+  floor_number: string | null;
 };
 
 export type BookingRecord = {

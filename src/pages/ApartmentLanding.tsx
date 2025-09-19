@@ -25,6 +25,8 @@ interface Apartment {
   building_number: string | null;
   entrance_code: string | null;
   lock_code: string | null;
+  entrance_number: string | null;
+  floor_number: string | null;
   faq_data: any[];
   hero_title: string;
   hero_subtitle: string;
@@ -116,6 +118,8 @@ const ApartmentLanding = () => {
           building_number: item.building_number || null,
           entrance_code: entranceCodeOverride || item.code_building || null,
           lock_code: lockCodeOverride || item.code_lock || null,
+          entrance_number: item.entrance_number || null,
+          floor_number: item.floor_number || null,
           faq_data: [
             { question: 'Заселение', answer: item.faq_checkin || 'Информация не указана' },
             { question: 'Апартаменты', answer: item.faq_apartment || 'Информация не указана' },
@@ -214,7 +218,10 @@ const ApartmentLanding = () => {
             entranceCode={entranceCodeOverride || apartment.entrance_code || 'Код не указан'}
             electronicLockCode={lockCodeOverride || apartment.lock_code || 'Код не указан'}
             wifiPassword={wifiOverride || apartment.wifi_password || 'Пароль не указан'}
-            wifiName={apartment.wifi_name || 'Название не указано'} // Add this line
+            wifiName={apartment.wifi_name || 'Название не указано'}
+            buildingNumber={apartment.building_number || 'Б'}
+            address={`${apartment.address || 'Нагорный тупик 13'} ${apartment.building_number || 'Б'}`}
+            entranceInfo={`${apartment.entrance_number || '2-й подъезд'} ${apartment.floor_number || '10 этаж'}`}
           />
         </div>
         
