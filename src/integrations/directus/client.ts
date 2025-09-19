@@ -20,11 +20,7 @@ console.log('Directus configuration:', {
 
 if (DIRECTUS_URL) {
   try {
-    client = createDirectus(DIRECTUS_URL).with(rest({
-      timeout: 30000, // 30 секунд таймаут
-      retry: 3, // 3 попытки
-      retryDelay: 1000 // 1 секунда между попытками
-    }));
+    client = createDirectus(DIRECTUS_URL).with(rest());
     if (DIRECTUS_STATIC_TOKEN) {
       client = client.with(staticToken(DIRECTUS_STATIC_TOKEN));
     }
