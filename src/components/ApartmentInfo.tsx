@@ -128,14 +128,14 @@ export const ApartmentInfo = ({
           
           <Button 
             variant="outline" 
-            onClick={() => copyToClipboard(electronicLockCode, "Код от электронного замка")}
-            className={`group w-full justify-between text-left h-auto p-6 bg-white/80 border-2 border-primary/30 hover:border-[hsl(var(--guest-navy))]/50 hover:bg-gradient-to-r hover:from-[hsl(var(--guest-navy))]/5 hover:to-[hsl(var(--guest-navy))]/5 transition-all duration-300 ${copiedField === "Код от электронного замка" ? "pulse-code" : ""}`}
+            onClick={() => copyToClipboard(electronicLockCode, "Код от ячейки или электронного замка")}
+            className={`group w-full justify-between text-left h-auto p-6 bg-white/80 border-2 border-primary/30 hover:border-[hsl(var(--guest-navy))]/50 hover:bg-gradient-to-r hover:from-[hsl(var(--guest-navy))]/5 hover:to-[hsl(var(--guest-navy))]/5 transition-all duration-300 ${copiedField === "Код от ячейки или электронного замка" ? "pulse-code" : ""}`}
           >
             <div>
-              <p className="font-medium text-muted-foreground">Код от электронного замка</p>
+              <p className="font-medium text-muted-foreground">Код от ячейки или электронного замка</p>
               <p className="text-2xl font-bold text-primary">{electronicLockCode}</p>
             </div>
-            {copiedField === "Код от электронного замка" ? (
+            {copiedField === "Код от ячейки или электронного замка" ? (
               <Check className="w-6 h-6 text-emerald-500" />
             ) : (
               <Copy className="w-6 h-6 text-muted-foreground group-hover:text-[hsl(var(--guest-navy))] transition-colors" />
