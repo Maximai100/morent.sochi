@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import React, { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -44,6 +44,38 @@ const queryClient = new QueryClient({
 
 const AppContent = () => {
   useScrollFix(); // Применяем исправления скроллинга
+  
+  // Проверка версии приложения при загрузке (только один раз в день)
+  React.useEffect(() => {
+    const checkVersion = async () => {
+      try {
+        const lastCheck = localStorage.getItem('last_version_check');
+        const now = Date.now();
+        
+        // Проверяем версию только раз в день
+        if (lastCheck && (now - parseInt(lastCheck)) < 86400000) {
+          return;
+        }
+        
+        const response = await fetch('/version.json?t=' + now);
+        const versionData = await response.json();
+        const currentVersion = localStorage.getItem('app_version');
+        
+        if (currentVersion && currentVersion !== versionData.version) {
+          console.log('New version detected');
+          localStorage.setItem('app_version', versionData.version);
+        } else if (!currentVersion) {
+          localStorage.setItem('app_version', versionData.version);
+        }
+        
+        localStorage.setItem('last_version_check', now.toString());
+      } catch (error) {
+        console.warn('Could not check app version:', error);
+      }
+    };
+    
+    checkVersion();
+  }, []);
   
   return (
     <BrowserRouter>

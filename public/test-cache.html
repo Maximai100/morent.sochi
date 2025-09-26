@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест кэша MORENT</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .test-item { margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Тест кэша MORENT</h1>
+    <p>Эта страница поможет проверить работу исправлений кэша.</p>
+    
+    <div id="results"></div>
+    
+    <button onclick="runTests()">Запустить тесты</button>
+    <button onclick="clearAllCache()">Очистить весь кэш</button>
+    <button onclick="checkServiceWorker()">Проверить Service Worker</button>
+    <button onclick="testApartmentLink()">Тест ссылки апартамента</button>
+    
+    <script>
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `test-item ${type}`;
+            div.innerHTML = message;
+            document.getElementById('results').appendChild(div);
+        }
+        
+        async function runTests() {
+            document.getElementById('results').innerHTML = '';
+            addResult('Начинаем тестирование...', 'info');
+            
+            // Тест 1: Проверка версии приложения
+            try {
+                const response = await fetch('/version.json?t=' + Date.now());
+                const version = await response.json();
+                addResult(`✅ Версия приложения: ${version.version} (${version.timestamp})`, 'success');
+            } catch (e) {
+                addResult(`❌ Ошибка загрузки версии: ${e.message}`, 'error');
+            }
+            
+            // Тест 2: Проверка Service Worker
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                if (registrations.length > 0) {
+                    addResult(`✅ Service Worker зарегистрирован: ${registrations.length} регистраций`, 'success');
+                } else {
+                    addResult(`⚠️ Service Worker не найден`, 'error');
+                }
+            } else {
+                addResult(`❌ Service Worker не поддерживается`, 'error');
+            }
+            
+            // Тест 3: Проверка кэшей
+            if ('caches' in window) {
+                const cacheNames = await caches.keys();
+                addResult(`📦 Найдено кэшей: ${cacheNames.length}`, 'info');
+                cacheNames.forEach(name => {
+                    addResult(`- ${name}`, 'info');
+                });
+            }
+            
+            // Тест 4: Проверка localStorage
+            const appVersion = localStorage.getItem('app_version');
+            if (appVersion) {
+                addResult(`💾 Версия в localStorage: ${appVersion}`, 'info');
+            } else {
+                addResult(`💾 Версия в localStorage не найдена`, 'info');
+            }
+            
+            // Тест 5: Проверка URL параметров
+            const urlParams = new URLSearchParams(window.location.search);
+            const params = Array.from(urlParams.entries());
+            if (params.length > 0) {
+                addResult(`🔗 URL параметры: ${JSON.stringify(Object.fromEntries(params))}`, 'info');
+            } else {
+                addResult(`🔗 URL параметры отсутствуют`, 'info');
+            }
+            
+            addResult('Тестирование завершено!', 'success');
+        }
+        
+        async function clearAllCache() {
+            try {
+                // Очистка всех кэшей
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    await Promise.all(cacheNames.map(name => caches.delete(name)));
+                    addResult(`✅ Очищено кэшей: ${cacheNames.length}`, 'success');
+                }
+                
+                // Очистка storage
+                localStorage.clear();
+                sessionStorage.clear();
+                addResult('✅ localStorage и sessionStorage очищены', 'success');
+                
+                // Перезагрузка Service Worker
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (let registration of registrations) {
+                        await registration.unregister();
+                    }
+                    addResult('✅ Service Worker отключен', 'success');
+                }
+                
+                addResult('🔄 Рекомендуется перезагрузить страницу', 'info');
+            } catch (e) {
+                addResult(`❌ Ошибка очистки кэша: ${e.message}`, 'error');
+            }
+        }
+        
+        async function checkServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                addResult(`Service Worker регистраций: ${registrations.length}`, 'info');
+                
+                registrations.forEach((reg, index) => {
+                    addResult(`Регистрация ${index + 1}:`, 'info');
+                    addResult(`- Scope: ${reg.scope}`, 'info');
+                    addResult(`- State: ${reg.active?.state || 'неактивен'}`, 'info');
+                    addResult(`- Script URL: ${reg.active?.scriptURL || 'неизвестно'}`, 'info');
+                });
+            }
+        }
+        
+        function testApartmentLink() {
+            const testId = 'test-apartment-123';
+            const testUrl = `${window.location.origin}/apartment/${testId}?guest=Тест&checkin=01.01.2024&checkout=02.01.2024`;
+            addResult(`🔗 Тестовая ссылка: <a href="${testUrl}" target="_blank">${testUrl}</a>`, 'info');
+            
+            // Также тест главной страницы с параметрами
+            const homeUrl = `${window.location.origin}/?apartment=${testId}&guest=Тест`;
+            addResult(`🏠 Главная с параметрами: <a href="${homeUrl}" target="_blank">${homeUrl}</a>`, 'info');
+        }
+        
+        // Автоматический запуск при загрузке
+        window.addEventListener('load', () => {
+            addResult('Страница загружена. Нажмите "Запустить тесты" для диагностики.', 'info');
+        });
+    </script>
+</body>
+</html>

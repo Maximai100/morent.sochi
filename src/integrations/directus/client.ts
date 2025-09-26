@@ -12,19 +12,13 @@ export const DIRECTUS_STATIC_TOKEN: string | undefined = (import.meta as any).en
 // Создаем клиент только если URL настроен
 let client: any = null;
 
-console.log('Directus configuration:', {
-  DIRECTUS_URL: DIRECTUS_URL ? 'Configured' : 'Not configured',
-  DIRECTUS_STATIC_TOKEN: DIRECTUS_STATIC_TOKEN ? 'Configured' : 'Not configured',
-  isProduction
-});
-
 if (DIRECTUS_URL) {
   try {
     client = createDirectus(DIRECTUS_URL).with(rest());
     if (DIRECTUS_STATIC_TOKEN) {
       client = client.with(staticToken(DIRECTUS_STATIC_TOKEN));
     }
-    console.log('Directus client created successfully with URL:', DIRECTUS_URL);
+    // Directus client created successfully
   } catch (error) {
     console.error('Failed to create Directus client:', error);
     client = {
@@ -35,7 +29,6 @@ if (DIRECTUS_URL) {
   }
 } else {
   // Создаем заглушку для случаев, когда Directus не настроен
-  console.warn('Directus URL is not configured. Set VITE_DIRECTUS_URL.');
   client = {
     request: async () => {
       throw new Error('Directus is not configured');

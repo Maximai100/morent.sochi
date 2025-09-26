@@ -7,6 +7,20 @@ import { Settings, Map } from "lucide-react";
 import "@/styles/minimal-guest.css";
 
 const Index = () => {
+  // Проверяем, есть ли параметры URL для прямого перехода к апартаменту
+  const urlParams = new URLSearchParams(window.location.search);
+  const apartmentId = urlParams.get('apartment') || urlParams.get('apt');
+  
+  // Если есть ID апартамента в параметрах, перенаправляем
+  if (apartmentId) {
+    window.location.href = `/apartment/${apartmentId}${window.location.search}`;
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-slate-800"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <Card className="w-full max-w-4xl mx-auto shadow-lg border border-slate-200">

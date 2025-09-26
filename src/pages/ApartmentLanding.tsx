@@ -78,39 +78,32 @@ const ApartmentLanding = () => {
   useEffect(() => {
     if (apartmentId) {
       loadApartment();
+    } else {
+      setLoading(false);
     }
-    // Отладочная информация для URL параметров
-    logger.debug('URL Params:', {
-      apartmentId,
-      guestName,
-      checkInDateRaw,
-      checkOutDateRaw,
-      checkInDate,
-      checkOutDate,
-      entranceCodeOverride,
-      lockCodeOverride,
-      wifiOverride
-    });
   }, [apartmentId]);
 
   const loadApartment = async () => {
     if (!apartmentId) {
+      logger.warn('No apartment ID provided');
       setLoading(false);
       return;
     }
 
     try {
       logger.debug('Loading apartment:', apartmentId);
-      const item = await directus.request(readItem<ApartmentRecord>('apartments', apartmentId, {
+      
+      // Простая загрузка без излишних проверок
+      const item = await directus.request(readItem('apartments', apartmentId, {
         fields: ['*', { photos: ['*'], video_entrance: ['*'], video_lock: ['*'] }]
       }));
       
       if (item) {
-        logger.debug('Apartment loaded successfully:', item);
+        logger.debug('Apartment loaded successfully');
         const mapped: Apartment = {
           id: item.id,
-          name: item.title || `Апартамент №${item.apartment_number || 'N/A'}`,
-          number: item.apartment_number || '',
+          name: item.title || `Апартамент №${item.apartment_number || apartmentId}`,
+          number: item.apartment_number || apartmentId,
           description: item.description || null,
           address: item.base_address || null,
           wifi_password: wifiOverride || item.wifi_password || null,
@@ -124,33 +117,23 @@ const ApartmentLanding = () => {
             { question: 'Заселение', answer: item.faq_checkin || 'Информация не указана' },
             { question: 'Апартаменты', answer: item.faq_apartment || 'Информация не указана' },
             { question: 'Территория', answer: item.faq_area || 'Информация не указана' },
-          ].filter(faq => faq.answer !== 'Информация не указана'), // Скрываем пустые FAQ
-          hero_title: item.title || `Апартамент №${item.apartment_number || 'N/A'}`,
-          hero_subtitle: item.description || 'Добро пожаловать!',
+          ].filter(faq => faq.answer !== 'Информация не указана'),
+          hero_title: item.title || `Апартамент №${item.apartment_number || apartmentId}`,
+          hero_subtitle: item.description || 'Добро пожаловать в MORENT!',
           contact_info: {
-            phone: item.manager_phone || '',
-            whatsapp: item.manager_phone || '',
-            telegram: item.manager_phone || '',
+            phone: item.manager_phone || '+7 (999) 123-45-67',
+            whatsapp: item.manager_phone || '+7 (999) 123-45-67',
+            telegram: item.manager_phone || '+7 (999) 123-45-67',
           },
-          map_coordinates: { lat: 43.5855, lng: 39.7231 }, // Координаты Сочи по умолчанию
-          loyalty_info: '',
+          map_coordinates: { lat: 43.5855, lng: 39.7231 },
+          loyalty_info: 'Спасибо, что выбрали MORENT!',
         } as any;
         setApartment(mapped);
-        logger.debug('Apartment data mapped successfully');
       } else {
-        logger.warn('No apartment data received');
         setApartment(null);
       }
     } catch (error) {
-      logger.error('Error loading apartment', error);
-      // Дополнительная информация об ошибке
-      if (error instanceof Error) {
-        logger.error('Error details:', {
-          message: error.message,
-          stack: error.stack,
-          apartmentId
-        });
-      }
+      logger.error('Error loading apartment:', error);
       setApartment(null);
     } finally {
       setLoading(false);
@@ -169,14 +152,26 @@ const ApartmentLanding = () => {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center guest-minimal px-4">
         <div className="text-center max-w-md">
-          <h1 className="text-xl md:text-2xl font-bold text-[hsl(var(--guest-navy))] mb-4">Апартамент не найден</h1>
-          <p className="text-[hsl(var(--guest-silver))] mb-6">Проверьте правильность ссылки или обратитесь к менеджеру</p>
-          <button 
-            onClick={() => window.location.href = '/'}
-            className="px-6 py-3 bg-[hsl(var(--guest-navy))] text-white rounded-lg hover:opacity-90 transition-opacity touch-target"
-          >
-            На главную
-          </button>
+          <h1 className="text-xl md:text-2xl font-bold text-[hsl(var(--guest-navy))] mb-4">
+            Апартамент не найден
+          </h1>
+          <p className="text-[hsl(var(--guest-silver))] mb-6">
+            Проверьте правильность ссылки или обратитесь к менеджеру
+          </p>
+          <div className="space-y-3">
+            <button 
+              onClick={() => window.location.reload()}
+              className="w-full px-6 py-3 bg-[hsl(var(--guest-navy))] text-white rounded-lg hover:opacity-90 transition-opacity"
+            >
+              Обновить страницу
+            </button>
+            <button 
+              onClick={() => window.location.href = '/manager'}
+              className="w-full px-6 py-3 border-2 border-[hsl(var(--guest-navy))] text-[hsl(var(--guest-navy))] rounded-lg hover:bg-[hsl(var(--guest-navy))] hover:text-white transition-colors"
+            >
+              Панель менеджера
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -185,6 +180,8 @@ const ApartmentLanding = () => {
   return (
     <div className="min-h-screen bg-white guest-minimal">
       <div className="max-w-4xl mx-auto px-4">
+
+        
         <div className="stagger-item pt-16">
           <HeroSection 
             title={apartment.hero_title}

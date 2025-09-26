@@ -1,5 +1,5 @@
 // Service Worker для MORENT PWA
-const CACHE_NAME = 'morent-v3';
+const CACHE_NAME = 'morent-v4-stable'; // Стабильная версия кэша
 const urlsToCache = [
   '/',
   '/manifest.json',
@@ -36,16 +36,33 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Обработка fetch запросов
+// Обработка fetch запросов - простая стратегия network-first для HTML
 self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Возвращаем кешированную версию или загружаем из сети
-        return response || fetch(event.request);
-      }
-    )
-  );
+  // Для HTML страниц используем network-first
+  if (event.request.destination === 'document' ||
+    event.request.headers.get('accept')?.includes('text/html')) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          // Если успешно загружено, возвращаем
+          if (response.ok) {
+            return response;
+          }
+          // Если ошибка, пытаемся взять из кэша
+          return caches.match(event.request) || response;
+        })
+        .catch(() => {
+          // Если сеть недоступна, берем из кэша или главную страницу
+          return caches.match(event.request) || caches.match('/');
+        })
+    );
+  } else {
+    // Для остальных ресурсов - cache-first
+    event.respondWith(
+      caches.match(event.request)
+        .then(response => response || fetch(event.request))
+    );
+  }
 });
 
 // Предотвращение горизонтальных свайпов в браузере
@@ -55,17 +72,3 @@ self.addEventListener('message', event => {
   }
 });
 
-// PWA scrolling improvements
-self.addEventListener('fetch', event => {
-  // Add scrolling headers for better PWA experience
-  if (event.request.destination === 'document') {
-    event.respondWith(
-      fetch(event.request).then(response => {
-        const newResponse = response.clone();
-        newResponse.headers.set('X-Content-Type-Options', 'nosniff');
-        newResponse.headers.set('X-Frame-Options', 'DENY');
-        return newResponse;
-      })
-    );
-  }
-});

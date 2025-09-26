@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Диагностика консоли MORENT</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        .success { background: #d4edda; border-left: 4px solid #28a745; }
+        .warning { background: #fff3cd; border-left: 4px solid #ffc107; }
+        .error { background: #f8d7da; border-left: 4px solid #dc3545; }
+        .info { background: #d1ecf1; border-left: 4px solid #17a2b8; }
+        
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #0C2D5A;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover { background: #0a2347; }
+        
+        #console-output {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+        }
+        
+        .test-link {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-decoration: none;
+            color: #333;
+        }
+        .test-link:hover {
+            background: #0C2D5A;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Диагностика консоли MORENT</h1>
+        
+        <div class="info">
+            <strong>Цель:</strong> Проверить, что в консоли нет избыточного логирования и циклических ссылок
+        </div>
+
+        <div id="status-container">
+            <!-- Статусы будут добавлены через JavaScript -->
+        </div>
+
+        <h3>🧪 Тесты</h3>
+        <button onclick="testConsoleOutput()">Проверить консоль</button>
+        <button onclick="testServiceWorker()">Проверить Service Worker</button>
+        <button onclick="testDirectus()">Проверить Directus</button>
+        <button onclick="clearConsole()">Очистить консоль</button>
+
+        <h3>📋 Вывод консоли</h3>
+        <div id="console-output">Нажмите "Проверить консоль" для начала диагностики...</div>
+
+        <h3>🔗 Тестовые ссылки</h3>
+        <a href="/apartment/d322e513-df6a-4bcf-ba7d-d006ab9a3f6c?guest=Тест&checkin=26.09.2025&checkout=27.09.2025" class="test-link">
+            <strong>Реальная ссылка апартамента</strong>
+            <small>Проверка загрузки без избыточного логирования</small>
+        </a>
+        
+        <a href="/" class="test-link">
+            <strong>Главная страница</strong>
+            <small>Базовая проверка</small>
+        </a>
+    </div>
+
+    <script>
+        let consoleMessages = [];
+        let originalConsole = {};
+
+        // Перехватываем все методы консоли
+        function interceptConsole() {
+            ['log', 'info', 'warn', 'error', 'debug'].forEach(method => {
+                originalConsole[method] = console[method];
+                console[method] = function(...args) {
+                    // Записываем сообщение
+                    consoleMessages.push({
+                        method: method,
+                        args: args,
+                        timestamp: new Date().toISOString(),
+                        size: JSON.stringify(args).length
+                    });
+                    
+                    // Вызываем оригинальный метод
+                    originalConsole[method].apply(console, args);
+                    
+                    // Обновляем вывод
+                    updateConsoleOutput();
+                };
+            });
+        }
+
+        function restoreConsole() {
+            ['log', 'info', 'warn', 'error', 'debug'].forEach(method => {
+                if (originalConsole[method]) {
+                    console[method] = originalConsole[method];
+                }
+            });
+        }
+
+        function updateConsoleOutput() {
+            const output = document.getElementById('console-output');
+            const recent = consoleMessages.slice(-20); // Показываем только последние 20 сообщений
+            
+            output.innerHTML = recent.map(msg => {
+                const sizeWarning = msg.size > 1000 ? ' ⚠️ БОЛЬШОЙ ОБЪЕКТ' : '';
+                return `[${msg.timestamp.split('T')[1].split('.')[0]}] ${msg.method.toUpperCase()}: ${JSON.stringify(msg.args).substring(0, 200)}${msg.args.length > 200 ? '...' : ''}${sizeWarning}`;
+            }).join('\n');
+            
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function addStatus(type, message) {
+            const container = document.getElementById('status-container');
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = message;
+            container.appendChild(div);
+        }
+
+        function testConsoleOutput() {
+            consoleMessages = [];
+            addStatus('info', '🔍 Начинаем мониторинг консоли...');
+            
+            // Проверяем количество сообщений за 5 секунд
+            setTimeout(() => {
+                const messageCount = consoleMessages.length;
+                const largeMessages = consoleMessages.filter(msg => msg.size > 1000).length;
+                
+                if (messageCount > 50) {
+                    addStatus('error', `❌ Слишком много сообщений в консоли: ${messageCount} за 5 секунд`);
+                } else if (largeMessages > 0) {
+                    addStatus('warning', `⚠️ Найдено ${largeMessages} больших объектов в консоли`);
+                } else if (messageCount < 10) {
+                    addStatus('success', `✅ Консоль чистая: ${messageCount} сообщений за 5 секунд`);
+                } else {
+                    addStatus('info', `ℹ️ Нормальное количество сообщений: ${messageCount} за 5 секунд`);
+                }
+            }, 5000);
+        }
+
+        function testServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    if (registrations.length === 0) {
+                        addStatus('success', '✅ Service Worker отключен (нет активных регистраций)');
+                    } else {
+                        addStatus('warning', `⚠️ Найдено ${registrations.length} активных Service Worker`);
+                        registrations.forEach((reg, index) => {
+                            addStatus('info', `SW ${index + 1}: ${reg.scope} (${reg.active?.state || 'неактивен'})`);
+                        });
+                    }
+                });
+            } else {
+                addStatus('error', '❌ Service Worker не поддерживается');
+            }
+        }
+
+        function testDirectus() {
+            // Проверяем, есть ли переменные Directus
+            const hasDirectusUrl = window.location.origin.includes('morent-sochi');
+            if (hasDirectusUrl) {
+                addStatus('success', '✅ Directus должен быть настроен для production');
+            } else {
+                addStatus('info', 'ℹ️ Локальная среда разработки');
+            }
+        }
+
+        function clearConsole() {
+            consoleMessages = [];
+            document.getElementById('console-output').innerHTML = 'Консоль очищена...';
+            document.getElementById('status-container').innerHTML = '';
+        }
+
+        // Инициализация
+        window.addEventListener('load', () => {
+            interceptConsole();
+            addStatus('info', '🚀 Диагностика инициализирована');
+            
+            // Автоматически запускаем тест консоли
+            setTimeout(testConsoleOutput, 1000);
+        });
+
+        // Восстанавливаем консоль при уходе со страницы
+        window.addEventListener('beforeunload', restoreConsole);
+    </script>
+</body>
+</html>

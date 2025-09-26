@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест реальной ссылки MORENT</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-link { 
+            display: block;
+            margin: 15px 0; 
+            padding: 15px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            text-decoration: none;
+            color: #333;
+            background: #f9f9f9;
+            transition: all 0.2s;
+        }
+        .test-link:hover { 
+            background: #0C2D5A; 
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(12, 45, 90, 0.3);
+        }
+        .test-link strong { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-size: 16px;
+        }
+        .test-link small { 
+            opacity: 0.7; 
+            font-size: 12px;
+            display: block;
+            margin-top: 5px;
+        }
+        h1 { 
+            color: #0C2D5A; 
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #2196f3;
+        }
+        .params {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔗 Тест реальной ссылки MORENT</h1>
+        
+        <div class="info">
+            <strong>Тестируем ссылку:</strong><br>
+            <code>https://morent-sochi.vercel.app/apartment/d322e513-df6a-4bcf-ba7d-d006ab9a3f6c?guest=Юлия&checkin=26.09.2025&checkout=27.09.2025&lock=03810#&entrance=#2020&wifi=76544321</code>
+        </div>
+
+        <div class="params">
+            <strong>Параметры из ссылки:</strong><br>
+            • ID апартамента: d322e513-df6a-4bcf-ba7d-d006ab9a3f6c<br>
+            • Гость: Юлия<br>
+            • Заезд: 26.09.2025<br>
+            • Выезд: 27.09.2025<br>
+            • Код замка: 03810#<br>
+            • Код подъезда: #2020<br>
+            • WiFi пароль: 76544321
+        </div>
+        
+        <a href="/apartment/d322e513-df6a-4bcf-ba7d-d006ab9a3f6c?guest=%D0%AE%D0%BB%D0%B8%D1%8F&checkin=26.09.2025&checkout=27.09.2025&lock=03810%23&entrance=%232020&wifi=76544321" class="test-link">
+            <strong>🏠 Открыть реальную ссылку</strong>
+            <small>Ссылка с URL-кодированными параметрами</small>
+        </a>
+        
+        <a href="/apartment/d322e513-df6a-4bcf-ba7d-d006ab9a3f6c?guest=Юлия&checkin=26.09.2025&checkout=27.09.2025&lock=03810%23&entrance=%232020&wifi=76544321" class="test-link">
+            <strong>🏠 Открыть с русскими символами</strong>
+            <small>Ссылка с читаемыми русскими символами</small>
+        </a>
+        
+        <a href="/apartment/d322e513-df6a-4bcf-ba7d-d006ab9a3f6c" class="test-link">
+            <strong>🏠 Только ID апартамента</strong>
+            <small>Без дополнительных параметров</small>
+        </a>
+        
+        <div style="margin-top: 30px;">
+            <h3>🔧 Диагностика</h3>
+            <button onclick="checkParams()" style="padding: 10px 20px; background: #0C2D5A; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                Проверить параметры текущей страницы
+            </button>
+            <div id="results" style="margin-top: 15px; padding: 15px; background: #f5f5f5; border-radius: 8px; font-family: monospace; font-size: 12px;"></div>
+        </div>
+    </div>
+
+    <script>
+        function checkParams() {
+            const url = new URL(window.location.href);
+            const params = new URLSearchParams(url.search);
+            
+            let result = '<strong>Текущий URL:</strong><br>' + window.location.href + '<br><br>';
+            result += '<strong>Параметры:</strong><br>';
+            
+            if (params.size === 0) {
+                result += 'Параметры отсутствуют<br>';
+            } else {
+                for (const [key, value] of params.entries()) {
+                    result += `${key}: ${decodeURIComponent(value)}<br>`;
+                }
+            }
+            
+            result += '<br><strong>Декодированные специальные символы:</strong><br>';
+            result += '%D0%AE%D0%BB%D0%B8%D1%8F = ' + decodeURIComponent('%D0%AE%D0%BB%D0%B8%D1%8F') + '<br>';
+            result += '%23 = ' + decodeURIComponent('%23') + '<br>';
+            
+            document.getElementById('results').innerHTML = result;
+        }
+        
+        // Автоматически показываем параметры при загрузке
+        window.addEventListener('load', checkParams);
+        
+        console.log('🔗 Тест реальной ссылки MORENT');
+        console.log('URL:', window.location.href);
+        console.log('Параметры:', Object.fromEntries(new URLSearchParams(window.location.search)));
+    </script>
+</body>
+</html>

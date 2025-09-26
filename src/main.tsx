@@ -4,18 +4,18 @@ import './index.css'
 import './styles/mobile.css'
 import './styles/scroll-fix.css'
 
-// Регистрация Service Worker для PWA
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(registration => {
-        console.log('SW registered: ', registration);
-      })
-      .catch(registrationError => {
-        console.log('SW registration failed: ', registrationError);
-      });
-  });
-}
+// Временно отключаем Service Worker для устранения проблем с логированием
+// if ('serviceWorker' in navigator) {
+//   window.addEventListener('load', () => {
+//     navigator.serviceWorker.register('/sw.js')
+//       .then(() => {
+//         // Service Worker зарегистрирован успешно
+//       })
+//       .catch(() => {
+//         // Ошибка регистрации Service Worker (игнорируем)
+//       });
+//   });
+// }
 
 // Обработка ошибок приложения
 window.addEventListener('error', (event) => {
