@@ -13,6 +13,7 @@ import { Copy, Share, Settings, AlertCircle, ArrowLeft, ExternalLink, Edit, Tras
 import { useAuth } from "@/contexts/AuthContext";
 import { directus, ApartmentRecord, BookingRecord, DIRECTUS_URL } from "@/integrations/directus/client";
 import { readItems, readItem, createItem, updateItem, deleteItem } from '@directus/sdk';
+import { useQueryClient } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -29,6 +30,7 @@ import "@/styles/manager-simplified.css";
 const ManagerPanel = () => {
   const { toast } = useToast();
   const { logout } = useAuth();
+  const queryClient = useQueryClient();
   const [apartments, setApartments] = useState<Array<{ id: string; name: string; number: string; entrance_code: string | null; lock_code: string | null; wifi_password: string | null; address?: string | null; description?: string | null; building_number?: string | null; housing_complex?: string | null }>>([]);
   const [formData, setFormData] = useState({
     apartmentId: '',
@@ -347,7 +349,7 @@ const ManagerPanel = () => {
       if (!created) throw lastError;
 
       await refetchBookings();
-      
+
       // Просто показываем успешное сообщение без автоматического копирования
       const link = generateGuestLink();
       
@@ -370,6 +372,8 @@ const ManagerPanel = () => {
           variant: "default"
         });
       }
+
+      await queryClient.invalidateQueries({ queryKey: ['bookings'], exact: false });
       resetGuestForm();
       
     } catch (e: any) {
