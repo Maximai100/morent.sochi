@@ -116,7 +116,7 @@ const ManagerPanel = () => {
   }, []);
 
 
-  const { errors, validateForm, validateAndClearError, hasErrors } = useFormValidation(validationRules);
+  const { errors, validateForm, validateAndClearError, hasErrors, clearError } = useFormValidation(validationRules);
 
   const generateGuestLink = () => {
     const baseUrl = window.location.origin;
@@ -165,6 +165,7 @@ const ManagerPanel = () => {
           title: "Ссылка скопирована!",
           description: "Ссылка для гостя скопирована в буфер обмена",
         });
+        resetGuestForm();
         return;
       } catch (error) {
         logger.error('Modern clipboard API failed:', error);
@@ -189,6 +190,7 @@ const ManagerPanel = () => {
           title: "Ссылка скопирована!",
           description: "Ссылка для гостя скопирована в буфер обмена",
         });
+        resetGuestForm();
       } else {
         throw new Error('execCommand failed');
       }
@@ -216,6 +218,7 @@ const ManagerPanel = () => {
           title: "Сообщение готово!",
           description: "Сообщение с инструкцией скопировано в буфер обмена",
         });
+        resetGuestForm();
         return;
       } catch (error) {
         logger.error('Modern clipboard API failed for message:', error);
@@ -239,6 +242,7 @@ const ManagerPanel = () => {
           title: "Сообщение готово!",
           description: "Сообщение с инструкцией скопировано в буфер обмена",
         });
+        resetGuestForm();
       } else {
         throw new Error('execCommand failed');
       }
@@ -257,6 +261,24 @@ const ManagerPanel = () => {
   const updateFormData = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     validateAndClearError(field, value);
+  };
+
+  const resetGuestForm = () => {
+    setFormData({
+      apartmentId: '',
+      checkIn: '',
+      checkOut: '',
+      electronicLockCode: '',
+      guestName: ''
+    });
+    setCheckInDate(undefined);
+    setCheckOutDate(undefined);
+    setShowCheckInCalendar(false);
+    setShowCheckOutCalendar(false);
+    setEditingBookingId(null);
+    if (Object.keys(errors).length) {
+      Object.keys(errors).forEach(field => clearError(field));
+    }
   };
 
   const createBooking = async () => {
@@ -348,6 +370,7 @@ const ManagerPanel = () => {
           variant: "default"
         });
       }
+      resetGuestForm();
       
     } catch (e: any) {
       // Try to surface Directus error details for easier debugging
