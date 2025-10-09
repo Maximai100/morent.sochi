@@ -8,6 +8,7 @@ import { CheckinSection } from "@/components/CheckinSection";
 import { ApartmentFAQ } from "@/components/ApartmentFAQ";
 import { ContactsSection } from "@/components/ContactsSection";
 import { LoyaltySection } from "@/components/LoyaltySection";
+import { AdditionalOptionsSection } from "@/components/AdditionalOptionsSection";
 import { YandexMap } from "@/components/YandexMap";
 import { WaveDivider } from "@/components/WaveDivider";
 import { directus, ApartmentRecord } from "@/integrations/directus/client";
@@ -260,7 +261,15 @@ const ApartmentLanding = () => {
         <div className="py-8">
           <WaveDivider />
         </div>
-        
+
+        <div className="stagger-item">
+          <AdditionalOptionsSection />
+        </div>
+
+        <div className="py-8">
+          <WaveDivider />
+        </div>
+
         <div className="stagger-item">
           <LoyaltySection info={apartment.loyalty_info} />
         </div>
