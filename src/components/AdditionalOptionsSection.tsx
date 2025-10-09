@@ -43,6 +43,10 @@ export const AdditionalOptionsSection = () => {
             </ul>
             <p className="text-sm text-muted-foreground mt-2">➕ Каждое дополнительное место оплачивается отдельно.</p>
           </div>
+
+          <div className="p-4 bg-white/60 rounded-xl border border-primary/10">
+            <p className="font-semibold">🚖 Индивидуальный трансфер по предварительному заказу — от 1500 ₽</p>
+          </div>
         </div>
 
         <p className="leading-relaxed">
@@ -52,4 +56,3 @@ export const AdditionalOptionsSection = () => {
     </Card>
   );
 };
-
