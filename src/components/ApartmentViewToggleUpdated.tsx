@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Grid3X3, List, Edit, Trash2, ExternalLink, Plus, Copy, Users } from "lucide-react";
+import { Grid3X3, List, Edit, ExternalLink, Plus, Copy, Users } from "lucide-react";
 import MassApartmentEdit from './MassApartmentEdit';
 import ApartmentSettingsCopy from './ApartmentSettingsCopy';
 import "@/styles/apartment-view-toggle.css";
@@ -74,9 +74,6 @@ const ApartmentViewToggle: React.FC<ApartmentViewToggleProps> = ({
             <Button variant="ghost" size="sm" onClick={() => onEditApartment(apartment)} className="touch-target">
               <Edit className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => onRemoveApartment(apartment.id)} className="touch-target">
-              <Trash2 className="w-4 h-4" />
-            </Button>
           </div>
         </div>
         <div className="mt-4 grid grid-cols-1 gap-2">
@@ -131,15 +128,6 @@ const ApartmentViewToggle: React.FC<ApartmentViewToggleProps> = ({
           title="Редактировать"
         >
           <Edit className="w-4 h-4" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => onRemoveApartment(apartment.id)} 
-          className="touch-target"
-          title="Удалить"
-        >
-          <Trash2 className="w-4 h-4" />
         </Button>
       </div>
     </div>
