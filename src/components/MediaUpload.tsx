@@ -33,7 +33,6 @@ export const MediaUpload = ({ category, title, onUploadSuccess, apartmentId, dir
   const { toast } = useToast();
   const [files, setFiles] = useState<MediaFileUI[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [description, setDescription] = useState("");
   const MAX_FILE_MB = Number(import.meta.env.VITE_UPLOAD_LIMIT_MB || 50);
 
   const deriveCategory = (): string | undefined => {
@@ -68,7 +67,7 @@ export const MediaUpload = ({ category, title, onUploadSuccess, apartmentId, dir
         const form = new FormData();
         form.append('file', file);
         if (derivedCategory) form.append('title', derivedCategory);
-        if (description) form.append('description', description);
+        // Описание отключено
 
         const res: any = await directus.request(uploadFiles(form));
         if (Array.isArray(res)) uploadedIds.push(...res.map((r: any) => r.id));
@@ -235,17 +234,6 @@ export const MediaUpload = ({ category, title, onUploadSuccess, apartmentId, dir
       <h3 className="text-lg font-semibold text-primary mb-4">{title}</h3>
       
       <div className="space-y-4">
-        <div>
-          <Label htmlFor={`description-${category}`}>Описание</Label>
-          <Textarea
-            id={`description-${category}`}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Краткое описание файла"
-            className="mt-1"
-          />
-        </div>
-
         <div>
           <Label htmlFor={`file-${category}`}>Загрузить файлы</Label>
           <input
