@@ -940,20 +940,12 @@ const ManagerPanel = () => {
 
                   <div className="space-y-3">
                     <Button 
-                      onClick={handleCopyLink}
-                      className="w-full bg-gradient-ocean shadow-ocean"
-                    >
-                      <Copy className="w-4 h-4 mr-2" />
-                      Скопировать ссылку
-                    </Button>
-
-                    <Button 
                       onClick={handleShareLink}
                       variant="outline"
                       className="w-full border-2 border-accent text-accent hover:bg-accent hover:text-white"
                     >
                       <Share className="w-4 h-4 mr-2" />
-                      Подготовить сообщение для гостя
+                      Скопировать сообщение для гостя
                     </Button>
 
                     {editingBookingId && (
