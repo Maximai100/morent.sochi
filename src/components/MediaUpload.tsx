@@ -230,12 +230,12 @@ export const MediaUpload = ({ category, title, onUploadSuccess, apartmentId, dir
   }, [category, apartmentId, directusField]);
 
   return (
-    <Card className="p-6">
-      <h3 className="text-lg font-semibold text-primary mb-4">{title}</h3>
+    <Card className="p-6 bg-slate-800 border border-slate-700 text-slate-200">
+      <h3 className="text-lg font-semibold text-white mb-4">{title}</h3>
       
       <div className="space-y-4">
         <div>
-          <Label htmlFor={`file-${category}`}>Загрузить файлы</Label>
+          <Label htmlFor={`file-${category}`} className="text-slate-400">Загрузить файлы</Label>
           <input
             id={`file-${category}`}
             type="file"
@@ -243,31 +243,31 @@ export const MediaUpload = ({ category, title, onUploadSuccess, apartmentId, dir
             multiple
             onChange={handleFileUpload}
             disabled={uploading}
-            className="mt-1 cursor-pointer"
+            className="mt-1 cursor-pointer text-slate-200 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500"
           />
         </div>
       </div>
 
       {files.length > 0 && (
         <div className="mt-6">
-          <h4 className="text-md font-medium text-foreground mb-3">Загруженные файлы:</h4>
+          <h4 className="text-md font-medium text-slate-200 mb-3">Загруженные файлы:</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {files.map((file) => (
               <div key={file.id} className="relative group">
-                <Card className="p-3">
+                <Card className="p-3 bg-slate-900/40 border border-slate-700">
                   <div className="flex items-start gap-3">
                     <div className="flex-shrink-0">
                       {file.file_type === 'video' ? (
-                        <Video className="w-8 h-8 text-accent" />
+                        <Video className="w-8 h-8 text-blue-400" />
                       ) : (
-                        <Image className="w-8 h-8 text-accent" />
+                        <Image className="w-8 h-8 text-blue-400" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">
+                      <p className="text-sm font-medium text-slate-200 truncate">
                         {file.filename}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-slate-400">
                         {file.description}
                       </p>
                     </div>

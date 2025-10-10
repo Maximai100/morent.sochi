@@ -112,13 +112,13 @@ const MassApartmentEdit: React.FC<MassApartmentEditProps> = ({
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-800 text-slate-200 border border-slate-700">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Edit className="w-5 h-5" />
+          <DialogTitle className="flex items-center gap-2 text-white">
+            <Edit className="w-5 h-5 text-blue-500" />
             Массовое редактирование апартаментов
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-slate-400">
             Выберите апартаменты и поля для массового обновления
           </DialogDescription>
         </DialogHeader>
@@ -149,8 +149,8 @@ const MassApartmentEdit: React.FC<MassApartmentEditProps> = ({
                   key={apartment.id}
                   className={`p-3 border rounded-lg cursor-pointer transition-colors ${
                     selectedApartments.includes(apartment.id)
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-blue-500 bg-blue-500/10'
+                      : 'border-slate-700 hover:border-slate-600'
                   }`}
                   onClick={() => handleSelectApartment(apartment.id)}
                 >
@@ -160,8 +160,8 @@ const MassApartmentEdit: React.FC<MassApartmentEditProps> = ({
                       onChange={() => handleSelectApartment(apartment.id)}
                     />
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">{apartment.name}</div>
-                      <div className="text-sm text-gray-500 truncate">
+                      <div className="font-medium truncate text-slate-200">{apartment.name}</div>
+                      <div className="text-sm text-slate-400 truncate">
                         {apartment.housing_complex && `ЖК "${apartment.housing_complex}"`}
                         {apartment.housing_complex && apartment.building_number && ' • '}
                         {apartment.building_number && `Корпус ${apartment.building_number}`}
@@ -173,27 +173,27 @@ const MassApartmentEdit: React.FC<MassApartmentEditProps> = ({
               ))}
             </div>
             
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-slate-400">
               Выбрано: {selectedApartments.length} из {apartments.length} апартаментов
             </div>
           </div>
 
           {/* Массовые обновления */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Массовые обновления</h3>
+            <h3 className="text-lg font-semibold text-white">Массовые обновления</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* ЖК */}
               <div className="space-y-2">
-                <Label htmlFor="mass_housing_complex">ЖК (Жилой комплекс)</Label>
+                <Label htmlFor="mass_housing_complex" className="text-slate-400">ЖК (Жилой комплекс)</Label>
                 <Select
                   value={massUpdates.housing_complex || 'none'}
                   onValueChange={(value) => handleMassUpdate('housing_complex', value === 'none' ? '' : value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-slate-700 border-slate-600 text-slate-100">
                     <SelectValue placeholder="Выберите ЖК или оставьте пустым" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-slate-800 border border-slate-700 text-slate-100">
                     <SelectItem value="none">Очистить поле</SelectItem>
                     {getUniqueValues('housing_complex').map((hc) => (
                       <SelectItem key={hc} value={hc}>{hc}</SelectItem>
@@ -204,120 +204,129 @@ const MassApartmentEdit: React.FC<MassApartmentEditProps> = ({
 
               {/* Адрес */}
               <div className="space-y-2">
-                <Label htmlFor="mass_address">Адрес</Label>
+                <Label htmlFor="mass_address" className="text-slate-400">Адрес</Label>
                 <Input
                   id="mass_address"
                   value={massUpdates.address || ''}
                   onChange={(e) => handleMassUpdate('address', e.target.value)}
                   placeholder="Общий адрес для всех"
+                  className="bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-500 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                 />
               </div>
 
               {/* WiFi пароль */}
               <div className="space-y-2">
-                <Label htmlFor="mass_wifi_password">WiFi пароль</Label>
+                <Label htmlFor="mass_wifi_password" className="text-slate-400">WiFi пароль</Label>
                 <Input
                   id="mass_wifi_password"
                   value={massUpdates.wifi_password || ''}
                   onChange={(e) => handleMassUpdate('wifi_password', e.target.value)}
                   placeholder="Общий WiFi пароль"
+                  className="bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-500 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                 />
               </div>
 
               {/* Код подъезда */}
               <div className="space-y-2">
-                <Label htmlFor="mass_entrance_code">Код подъезда</Label>
+                <Label htmlFor="mass_entrance_code" className="text-slate-400">Код подъезда</Label>
                 <Input
                   id="mass_entrance_code"
                   value={massUpdates.entrance_code || ''}
                   onChange={(e) => handleMassUpdate('entrance_code', e.target.value)}
                   placeholder="Общий код подъезда"
+                  className="bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-500 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                 />
               </div>
 
               {/* Имя менеджера */}
               <div className="space-y-2">
-                <Label htmlFor="mass_manager_name">Имя менеджера</Label>
+                <Label htmlFor="mass_manager_name" className="text-slate-400">Имя менеджера</Label>
                 <Input
                   id="mass_manager_name"
                   value={massUpdates.manager_name || ''}
                   onChange={(e) => handleMassUpdate('manager_name', e.target.value)}
                   placeholder="Общее имя менеджера"
+                  className="bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-500 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                 />
               </div>
 
               {/* Телефон менеджера */}
               <div className="space-y-2">
-                <Label htmlFor="mass_manager_phone">Телефон менеджера</Label>
+                <Label htmlFor="mass_manager_phone" className="text-slate-400">Телефон менеджера</Label>
                 <Input
                   id="mass_manager_phone"
                   value={massUpdates.manager_phone || ''}
                   onChange={(e) => handleMassUpdate('manager_phone', e.target.value)}
                   placeholder="Общий телефон менеджера"
+                  className="bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-500 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                 />
               </div>
 
               {/* Email менеджера */}
               <div className="space-y-2">
-                <Label htmlFor="mass_manager_email">Email менеджера</Label>
+                <Label htmlFor="mass_manager_email" className="text-slate-400">Email менеджера</Label>
                 <Input
                   id="mass_manager_email"
                   type="email"
                   value={massUpdates.manager_email || ''}
                   onChange={(e) => handleMassUpdate('manager_email', e.target.value)}
                   placeholder="Общий email менеджера"
+                  className="bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-500 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                 />
               </div>
             </div>
 
             {/* FAQ поля */}
             <div className="space-y-4">
-              <h4 className="text-md font-semibold">FAQ информация</h4>
+              <h4 className="text-md font-semibold text-white">FAQ информация</h4>
               
               <div className="space-y-2">
-                <Label htmlFor="mass_faq_checkin">FAQ - Заселение</Label>
+                <Label htmlFor="mass_faq_checkin" className="text-slate-400">FAQ - Заселение</Label>
                 <Textarea
                   id="mass_faq_checkin"
                   value={massUpdates.faq_checkin || ''}
                   onChange={(e) => handleMassUpdate('faq_checkin', e.target.value)}
                   placeholder="Общая информация о заселении"
                   rows={3}
+                  className="bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-500 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="mass_faq_apartment">FAQ - Апартаменты</Label>
+                <Label htmlFor="mass_faq_apartment" className="text-slate-400">FAQ - Апартаменты</Label>
                 <Textarea
                   id="mass_faq_apartment"
                   value={massUpdates.faq_apartment || ''}
                   onChange={(e) => handleMassUpdate('faq_apartment', e.target.value)}
                   placeholder="Общая информация об апартаментах"
                   rows={3}
+                  className="bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-500 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="mass_faq_area">FAQ - Территория</Label>
+                <Label htmlFor="mass_faq_area" className="text-slate-400">FAQ - Территория</Label>
                 <Textarea
                   id="mass_faq_area"
                   value={massUpdates.faq_area || ''}
                   onChange={(e) => handleMassUpdate('faq_area', e.target.value)}
                   placeholder="Общая информация о территории"
                   rows={3}
+                  className="bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-500 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                 />
               </div>
             </div>
           </div>
 
           {/* Кнопки действий */}
-          <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button variant="outline" onClick={onClose} disabled={isLoading}>
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-700">
+            <Button variant="outline" onClick={onClose} disabled={isLoading} className="bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700">
               Отмена
             </Button>
             <Button 
               onClick={handleSave} 
               disabled={isLoading || selectedApartments.length === 0}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white"
             >
               {isLoading ? (
                 <>

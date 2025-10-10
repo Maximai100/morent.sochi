@@ -728,19 +728,19 @@ const ManagerPanel = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-wave p-4 md:p-6 manager-mobile">
+    <div className="min-h-screen bg-slate-900 text-slate-200 p-4 md:p-6 manager-mobile">
       <div className="max-w-6xl mx-auto">
-        <Card className="p-4 md:p-8 shadow-ocean">
+        <Card className="p-4 md:p-8 bg-slate-800 border border-slate-700 shadow-none">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 md:mb-8 gap-4 sm:gap-0">
           <div className="flex items-center gap-2 md:gap-3 flex-1 sm:flex-none">
-            <Settings className="w-6 h-6 md:w-8 md:h-8 text-primary flex-shrink-0" />
-            <h1 className="text-lg md:text-3xl font-bold font-playfair text-primary uppercase leading-tight">Панель менеджера MORENT</h1>
+            <Settings className="w-6 h-6 md:w-8 md:h-8 text-blue-500 flex-shrink-0" />
+            <h1 className="text-lg md:text-3xl font-bold uppercase leading-tight text-white">Панель менеджера MORENT</h1>
           </div>
           <div className="flex items-center gap-2 manager-header-buttons w-full sm:w-auto">
             <Button 
               variant="outline" 
               onClick={() => window.location.href = '/'}
-              className="flex items-center gap-2 text-sm md:text-base px-2 md:px-4 flex-1 sm:flex-none justify-center"
+              className="flex items-center gap-2 text-sm md:text-base px-2 md:px-4 flex-1 sm:flex-none justify-center bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 focus:ring-2 focus:ring-blue-600"
             >
               <ArrowLeft className="w-4 h-4" />
               <span className="hidden sm:inline">На главную</span>
@@ -749,7 +749,7 @@ const ManagerPanel = () => {
             <Button 
               variant="outline" 
               onClick={logout}
-              className="flex items-center gap-2 text-sm md:text-base px-2 md:px-4 flex-1 sm:flex-none justify-center"
+              className="flex items-center gap-2 text-sm md:text-base px-2 md:px-4 flex-1 sm:flex-none justify-center bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 focus:ring-2 focus:ring-blue-600"
             >
               <LogOut className="w-4 h-4" />
               <span className="hidden sm:inline">Выйти</span>
@@ -758,13 +758,13 @@ const ManagerPanel = () => {
           </div>
 
           <Tabs defaultValue="guest-data" className="w-full">
-            <TabsList className="grid w-full tabs-list-mobile grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-0 h-auto p-1">
-              <TabsTrigger value="guest-data" className="flex items-center gap-2 tabs-trigger-mobile justify-center py-3">
+            <TabsList className="grid w-full tabs-list-mobile grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-0 h-auto p-1 bg-slate-800 border border-slate-700 rounded-lg">
+              <TabsTrigger value="guest-data" className="flex items-center gap-2 tabs-trigger-mobile justify-center py-3 text-slate-300 hover:bg-slate-700 rounded-md transition-colors data-[state=active]:bg-blue-600 data-[state=active]:text-white">
                 <Settings className="w-4 h-4" />
                 <span className="hidden sm:inline">Данные гостя</span>
                 <span className="sm:hidden">Гость</span>
               </TabsTrigger>
-              <TabsTrigger value="apartments" className="flex items-center gap-2 tabs-trigger-mobile justify-center py-3">
+              <TabsTrigger value="apartments" className="flex items-center gap-2 tabs-trigger-mobile justify-center py-3 text-slate-300 hover:bg-slate-700 rounded-md transition-colors data-[state=active]:bg-blue-600 data-[state=active]:text-white">
                 <ExternalLink className="w-4 h-4" />
                 <span className="hidden sm:inline">Апартаменты</span>
                 <span className="sm:hidden">Квартиры</span>
@@ -775,19 +775,19 @@ const ManagerPanel = () => {
               <div className="grid md:grid-cols-2 gap-4 md:gap-8 guest-form-grid">
                 {/* Form Section */}
                 <div className="space-y-4 md:space-y-6 form-section">
-                  <h2 className="text-xl font-semibold font-playfair text-primary border-b border-border pb-2 uppercase">
+                  <h2 className="text-xl font-semibold text-white border-b border-slate-700 pb-2 uppercase">
                     Данные для гостя
                   </h2>
 
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="guestName">Имя гостя</Label>
+                      <Label htmlFor="guestName" className="text-slate-400">Имя гостя</Label>
                       <Input
                         id="guestName"
                         value={formData.guestName}
                         onChange={(e) => updateFormData('guestName', e.target.value)}
                         placeholder="Иван Иванов"
-                        className={errors.guestName ? "border-destructive" : ""}
+                        className={`bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-500 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600 ${errors.guestName ? 'border-destructive' : ''}`}
                       />
                       {errors.guestName && (
                         <div className="flex items-center gap-1 text-destructive text-sm mt-1">
@@ -798,12 +798,12 @@ const ManagerPanel = () => {
                     </div>
 
                     <div>
-                      <Label>Апартамент</Label>
+                      <Label className="text-slate-400">Апартамент</Label>
                       <Select value={formData.apartmentId} onValueChange={(v) => updateFormData('apartmentId', v)}>
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-slate-700 border-slate-600 text-slate-100 rounded-lg">
                           <SelectValue placeholder="Выберите апартамент" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-slate-800 border border-slate-700 text-slate-100">
                           {apartments.map(a => (
                             <SelectItem key={a.id} value={a.id}>{a.name} №{a.number}</SelectItem>
                           ))}
@@ -813,17 +813,17 @@ const ManagerPanel = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label>Дата заезда</Label>
+                        <Label className="text-slate-400">Дата заезда</Label>
                         {/* Desktop: Popover */}
                         <div className="hidden sm:block">
                           <Popover>
                             <PopoverTrigger asChild>
-                              <Button variant="outline" className="w-full justify-start gap-2">
+                              <Button variant="outline" className="w-full justify-start gap-2 bg-slate-700 border-slate-600 text-slate-100 hover:bg-slate-600 rounded-lg focus:ring-2 focus:ring-blue-600">
                                 <CalendarIcon className="w-4 h-4" />
                                 {checkInDate ? format(checkInDate, 'dd.MM.yyyy') : 'Выбрать дату'}
                               </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="p-0 w-auto overflow-hidden" side="bottom" align="center" sideOffset={8}>
+                            <PopoverContent className="p-0 w-auto overflow-hidden bg-slate-800 border border-slate-700" side="bottom" align="center" sideOffset={8}>
                               <Calendar
                                 mode="single"
                                 selected={checkInDate}
@@ -841,7 +841,7 @@ const ManagerPanel = () => {
                         <div className="block sm:hidden">
                           <Button 
                             variant="outline" 
-                            className="w-full justify-start gap-2"
+                            className="w-full justify-start gap-2 bg-slate-700 border-slate-600 text-slate-100 hover:bg-slate-600 rounded-lg focus:ring-2 focus:ring-blue-600"
                             onClick={() => setShowCheckInCalendar(true)}
                           >
                             <CalendarIcon className="w-4 h-4" />
@@ -857,17 +857,17 @@ const ManagerPanel = () => {
                         )}
                       </div>
                       <div>
-                        <Label>Дата выезда</Label>
+                        <Label className="text-slate-400">Дата выезда</Label>
                         {/* Desktop: Popover */}
                         <div className="hidden sm:block">
                           <Popover>
                             <PopoverTrigger asChild>
-                              <Button variant="outline" className="w-full justify-start gap-2">
+                              <Button variant="outline" className="w-full justify-start gap-2 bg-slate-700 border-slate-600 text-slate-100 hover:bg-slate-600 rounded-lg focus:ring-2 focus:ring-blue-600">
                                 <CalendarIcon className="w-4 h-4" />
                                 {checkOutDate ? format(checkOutDate, 'dd.MM.yyyy') : 'Выбрать дату'}
                               </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="p-0 w-auto overflow-hidden" side="bottom" align="center" sideOffset={8}>
+                            <PopoverContent className="p-0 w-auto overflow-hidden bg-slate-800 border border-slate-700" side="bottom" align="center" sideOffset={8}>
                               <Calendar
                                 mode="single"
                                 selected={checkOutDate}
@@ -885,7 +885,7 @@ const ManagerPanel = () => {
                         <div className="block sm:hidden">
                           <Button 
                             variant="outline" 
-                            className="w-full justify-start gap-2"
+                            className="w-full justify-start gap-2 bg-slate-700 border-slate-600 text-slate-100 hover:bg-slate-600 rounded-lg focus:ring-2 focus:ring-blue-600"
                             onClick={() => setShowCheckOutCalendar(true)}
                           >
                             <CalendarIcon className="w-4 h-4" />
@@ -904,14 +904,14 @@ const ManagerPanel = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="md:col-span-2">
-                        <Label htmlFor="lock">Код электронного замка (можно оставить пустым для кода из карточки)</Label>
-                        <Input
-                          id="lock"
-                          value={formData.electronicLockCode}
-                          onChange={(e) => updateFormData('electronicLockCode', e.target.value)}
-                          placeholder="1111"
-                          className={errors.electronicLockCode ? "border-destructive" : ""}
-                        />
+                      <Label htmlFor="lock" className="text-slate-400">Код электронного замка (можно оставить пустым для кода из карточки)</Label>
+                      <Input
+                        id="lock"
+                        value={formData.electronicLockCode}
+                        onChange={(e) => updateFormData('electronicLockCode', e.target.value)}
+                        placeholder="1111"
+                        className={`bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-500 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600 ${errors.electronicLockCode ? 'border-destructive' : ''}`}
+                      />
                         {errors.electronicLockCode && (
                           <div className="flex items-center gap-1 text-destructive text-sm mt-1">
                             <AlertCircle className="w-4 h-4" />
@@ -925,24 +925,23 @@ const ManagerPanel = () => {
 
                 {/* Preview, Actions and Bookings List */}
                 <div className="space-y-4 md:space-y-6 link-section">
-                  <h2 className="text-xl font-semibold font-playfair text-primary border-b border-border pb-2 uppercase">
+                  <h2 className="text-xl font-semibold text-white border-b border-slate-700 pb-2 uppercase">
                     Ссылка для отправки
                   </h2>
 
-                  <Card className="p-4 bg-muted">
-                    <Label className="text-sm font-medium">Ссылка для гостя:</Label>
+                  <Card className="p-4 bg-slate-800 border border-slate-700">
+                    <Label className="text-sm font-medium text-slate-400">Ссылка для гостя:</Label>
                     <Textarea
                       value={generateGuestLink()}
                       readOnly
-                      className="mt-2 h-20 resize-none"
+                      className="mt-2 h-20 resize-none bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-500 rounded-lg"
                     />
                   </Card>
 
                   <div className="space-y-3">
                     <Button 
                       onClick={handleShareLink}
-                      variant="outline"
-                      className="w-full border-2 border-accent text-accent hover:bg-accent hover:text-white"
+                      className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-lg focus:ring-2 focus:ring-blue-600"
                     >
                       <Share className="w-4 h-4 mr-2" />
                       Скопировать сообщение для гостя
@@ -956,9 +955,9 @@ const ManagerPanel = () => {
                     )}
                   </div>
 
-                  <Card className="p-4 bg-accent/5 border-accent/20">
-                    <h3 className="font-medium text-accent mb-2">Готовое сообщение:</h3>
-                    <p className="text-sm text-foreground">
+                  <Card className="p-4 bg-slate-800 border border-slate-700">
+                    <h3 className="font-semibold text-white mb-2">Готовое сообщение:</h3>
+                    <p className="text-sm text-slate-200">
                       Здравствуйте, {formData.guestName || '[Имя гостя]'}! 🌞<br/>
                       Добро пожаловать в MORENT — ваш уютный дом в Сочи 🌴<br/><br/>
                       Мы подготовили для вас персональную страницу с важной информацией: как заселиться, как добраться и как связаться с нами 👇<br/>
@@ -973,25 +972,25 @@ const ManagerPanel = () => {
                     </p>
                   </Card>
                   <div className="space-y-3">
-                    <h3 className="text-xl font-semibold font-playfair text-primary border-b border-border pb-2 uppercase">Текущие бронирования</h3>
+                    <h3 className="text-xl font-semibold text-white border-b border-slate-700 pb-2 uppercase">Текущие бронирования</h3>
                     <div className="grid grid-cols-1 gap-3 bookings-list">
                       {bookings.map((b) => (
-                        <Card key={b.id} className="p-3 booking-item">
+                        <Card key={b.id} className="p-3 booking-item bg-slate-800 border border-slate-700">
                           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 booking-item-content">
                             <div className="text-left flex-1">
-                              <div className="font-medium">{b.guest_name}</div>
-                              <div className="text-sm text-muted-foreground">
+                              <div className="font-medium text-slate-100">{b.guest_name}</div>
+                              <div className="text-sm text-slate-400">
                                 <span className="block sm:inline">Заезд: {b.checkin_date || '-'}</span>
                                 <span className="hidden sm:inline"> · </span>
                                 <span className="block sm:inline">Выезд: {b.checkout_date || '-'}</span>
                               </div>
                             </div>
                             <div className="flex gap-1 w-full sm:w-auto booking-actions">
-                              <Button variant="ghost" size="sm" onClick={() => startEditBooking(b)} className="flex-1 sm:flex-none touch-target">
+                              <Button variant="ghost" size="sm" onClick={() => startEditBooking(b)} className="flex-1 sm:flex-none touch-target text-slate-300 hover:bg-slate-700">
                                 <Edit className="w-4 h-4" />
                                 <span className="ml-1 sm:hidden">Изменить</span>
                               </Button>
-                              <Button variant="ghost" size="sm" onClick={() => deleteBooking(b.id)} className="flex-1 sm:flex-none touch-target">
+                              <Button variant="ghost" size="sm" onClick={() => deleteBooking(b.id)} className="flex-1 sm:flex-none touch-target text-slate-300 hover:bg-slate-700">
                                 <Trash2 className="w-4 h-4" />
                                 <span className="ml-1 sm:hidden">Удалить</span>
                               </Button>
@@ -1000,7 +999,7 @@ const ManagerPanel = () => {
                         </Card>
                       ))}
                       {bookings.length === 0 && (
-                        <div className="text-sm text-muted-foreground p-4 text-center bg-muted rounded">Нет бронирований{formData.apartmentId ? ' для выбранного апартамента' : ''}.</div>
+                        <div className="text-sm text-slate-400 p-4 text-center bg-slate-800 border border-slate-700 rounded">Нет бронирований{formData.apartmentId ? ' для выбранного апартамента' : ''}.</div>
                       )}
                     </div>
                   </div>
@@ -1058,9 +1057,9 @@ const ManagerPanel = () => {
 
       {/* Mobile Calendar Dialogs */}
       <Dialog open={showCheckInCalendar} onOpenChange={setShowCheckInCalendar}>
-        <DialogContent className="max-w-sm mx-auto">
+        <DialogContent className="max-w-sm mx-auto bg-slate-800 border border-slate-700 text-slate-200">
           <DialogHeader>
-            <DialogTitle>Выберите дату заезда</DialogTitle>
+            <DialogTitle className="text-white">Выберите дату заезда</DialogTitle>
           </DialogHeader>
           <Calendar
             mode="single"
@@ -1076,9 +1075,9 @@ const ManagerPanel = () => {
       </Dialog>
 
       <Dialog open={showCheckOutCalendar} onOpenChange={setShowCheckOutCalendar}>
-        <DialogContent className="max-w-sm mx-auto">
+        <DialogContent className="max-w-sm mx-auto bg-slate-800 border border-slate-700 text-slate-200">
           <DialogHeader>
-            <DialogTitle>Выберите дату выезда</DialogTitle>
+            <DialogTitle className="text-white">Выберите дату выезда</DialogTitle>
           </DialogHeader>
           <Calendar
             mode="single"

@@ -54,24 +54,24 @@ const ApartmentViewToggle: React.FC<ApartmentViewToggleProps> = ({
     : apartments.filter(a => a.housing_complex === housingComplexFilter);
 
   const ApartmentCard = ({ apartment }: { apartment: Apartment }) => (
-    <Card key={apartment.id} className="hover-lift">
+    <Card key={apartment.id} className="hover-lift bg-slate-800 border border-slate-700 text-slate-200">
       <div className="p-4 apartment-card-mobile">
         <div className="flex items-start justify-between">
           <div>
             <div className="space-y-1">
               {apartment.housing_complex && (
-                <div className="inline-block px-2 py-1 rounded-md border-2 border-blue-500/60 bg-blue-500/10 text-blue-600 font-bold tracking-wide text-sm">
+                <div className="inline-block px-2 py-1 rounded-md border border-blue-500/40 bg-blue-500/10 text-blue-400 font-bold tracking-wide text-sm">
                   ЖК "{apartment.housing_complex}"
                 </div>
               )}
-              <div className="inline-block px-2 py-1 rounded-md border-2 border-gold/60 bg-gold/10 text-gold font-bold tracking-wide text-base apartment-number">
+              <div className="inline-block px-2 py-1 rounded-md border border-slate-600 bg-slate-700/50 text-slate-100 font-bold tracking-wide text-base apartment-number">
                 Корпус {apartment.building_number} № {apartment.number}
               </div>
             </div>
-            <p className="text-lg font-semibold">{apartment.name}</p>
+            <p className="text-lg font-semibold text-white">{apartment.name}</p>
           </div>
           <div className="flex gap-1">
-            <Button variant="ghost" size="sm" onClick={() => onEditApartment(apartment)} className="touch-target">
+            <Button variant="ghost" size="sm" onClick={() => onEditApartment(apartment)} className="touch-target text-slate-300 hover:bg-slate-700">
               <Edit className="w-4 h-4" />
             </Button>
           </div>
@@ -81,7 +81,7 @@ const ApartmentViewToggle: React.FC<ApartmentViewToggleProps> = ({
             variant="ghost"
             size="sm"
             onClick={() => window.open(`/apartment/${apartment.id}`, '_blank')}
-            className="touch-target"
+            className="touch-target text-slate-300 hover:bg-slate-700"
           >
             Открыть страницу гостя
           </Button>
@@ -91,23 +91,23 @@ const ApartmentViewToggle: React.FC<ApartmentViewToggleProps> = ({
   );
 
   const ApartmentListItem = ({ apartment }: { apartment: Apartment }) => (
-    <div key={apartment.id} className="apartment-list-item">
-      <div className="apartment-list-content">
+    <div key={apartment.id} className="apartment-list-item bg-slate-800 border border-slate-700 rounded-lg">
+      <div className="apartment-list-content text-slate-200">
         <div className="apartment-list-header">
           <div className="flex flex-col gap-1">
             {apartment.housing_complex && (
-              <div className="inline-block px-2 py-1 rounded-md border-2 border-blue-500/60 bg-blue-500/10 text-blue-600 font-bold tracking-wide text-xs">
+              <div className="inline-block px-2 py-1 rounded-md border border-blue-500/40 bg-blue-500/10 text-blue-400 font-bold tracking-wide text-xs">
                 ЖК "{apartment.housing_complex}"
               </div>
             )}
-            <div className="apartment-list-number">
+            <div className="apartment-list-number text-white">
               Корпус {apartment.building_number} № {apartment.number}
             </div>
           </div>
-          <h3 className="apartment-list-title">{apartment.name}</h3>
+          <h3 className="apartment-list-title text-white">{apartment.name}</h3>
         </div>
         {apartment.address && (
-          <p className="apartment-list-address">{apartment.address}</p>
+          <p className="apartment-list-address text-slate-400">{apartment.address}</p>
         )}
       </div>
       <div className="apartment-list-actions">
@@ -115,7 +115,7 @@ const ApartmentViewToggle: React.FC<ApartmentViewToggleProps> = ({
           variant="ghost"
           size="sm"
           onClick={() => window.open(`/apartment/${apartment.id}`, '_blank')}
-          className="touch-target"
+          className="touch-target text-slate-300 hover:bg-slate-700"
           title="Открыть страницу гостя"
         >
           <ExternalLink className="w-4 h-4" />
@@ -124,7 +124,7 @@ const ApartmentViewToggle: React.FC<ApartmentViewToggleProps> = ({
           variant="ghost" 
           size="sm" 
           onClick={() => onEditApartment(apartment)} 
-          className="touch-target"
+          className="touch-target text-slate-300 hover:bg-slate-700"
           title="Редактировать"
         >
           <Edit className="w-4 h-4" />
@@ -138,17 +138,17 @@ const ApartmentViewToggle: React.FC<ApartmentViewToggleProps> = ({
       {/* Header with view toggle */}
       <div className="apartment-header">
         <div className="apartment-header-title">
-          <h2 className="text-xl font-semibold text-slate-800">Апартаменты</h2>
+          <h2 className="text-xl font-semibold text-white">Апартаменты</h2>
           <span className="apartment-header-count">({filteredApartments.length})</span>
         </div>
         
         <div className="apartment-header-controls">
           {/* Фильтр по ЖК */}
           <Select value={housingComplexFilter} onValueChange={setHousingComplexFilter}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-48 bg-slate-700 border-slate-600 text-slate-100">
               <SelectValue placeholder="Все ЖК" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-slate-800 border border-slate-700 text-slate-100">
               <SelectItem value="all">Все ЖК</SelectItem>
               {uniqueHousingComplexes.map((hc) => (
                 <SelectItem key={hc} value={hc}>ЖК "{hc}"</SelectItem>
@@ -162,7 +162,7 @@ const ApartmentViewToggle: React.FC<ApartmentViewToggleProps> = ({
               variant={viewMode === 'cards' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('cards')}
-              className="px-3 py-1"
+              className="px-3 py-1 text-slate-300 hover:bg-slate-700"
             >
               <Grid3X3 className="w-4 h-4" />
             </Button>
@@ -170,7 +170,7 @@ const ApartmentViewToggle: React.FC<ApartmentViewToggleProps> = ({
               variant={viewMode === 'list' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('list')}
-              className="px-3 py-1"
+              className="px-3 py-1 text-slate-300 hover:bg-slate-700"
             >
               <List className="w-4 h-4" />
             </Button>
@@ -181,7 +181,7 @@ const ApartmentViewToggle: React.FC<ApartmentViewToggleProps> = ({
             variant="outline"
             size="sm"
             onClick={() => setShowMassEdit(true)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700"
             disabled={apartments.length === 0}
           >
             <Users className="w-4 h-4" />
@@ -194,7 +194,7 @@ const ApartmentViewToggle: React.FC<ApartmentViewToggleProps> = ({
             variant="outline"
             size="sm"
             onClick={() => setShowSettingsCopy(true)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700"
             disabled={apartments.length < 2}
           >
             <Copy className="w-4 h-4" />
@@ -205,7 +205,7 @@ const ApartmentViewToggle: React.FC<ApartmentViewToggleProps> = ({
           {/* Add Apartment Button */}
           <Button
             onClick={onAddApartment}
-            className="touch-target"
+            className="touch-target bg-blue-600 hover:bg-blue-500 text-white"
             variant="default"
           >
             <Plus className="w-4 h-4 mr-2" /> Добавить апартамент
@@ -234,16 +234,16 @@ const ApartmentViewToggle: React.FC<ApartmentViewToggleProps> = ({
           <div className="text-slate-400 mb-4">
             <Grid3X3 className="w-12 h-12 mx-auto" />
           </div>
-          <h3 className="text-lg font-semibold text-slate-600 mb-2">
+          <h3 className="text-lg font-semibold text-slate-300 mb-2">
             {housingComplexFilter === 'all' ? 'Нет апартаментов' : 'Нет апартаментов в выбранном ЖК'}
           </h3>
-          <p className="text-slate-500 mb-4">
+          <p className="text-slate-400 mb-4">
             {housingComplexFilter === 'all' 
               ? 'Добавьте первый апартамент, чтобы начать работу'
               : 'Попробуйте выбрать другой ЖК или добавьте апартаменты в этот ЖК'
             }
           </p>
-          <Button onClick={onAddApartment} variant="default">
+          <Button onClick={onAddApartment} variant="default" className="bg-blue-600 hover:bg-blue-500 text-white">
             <Plus className="w-4 h-4 mr-2" /> Добавить апартамент
           </Button>
         </div>

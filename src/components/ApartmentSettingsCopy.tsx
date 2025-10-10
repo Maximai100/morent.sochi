@@ -145,13 +145,13 @@ const ApartmentSettingsCopy: React.FC<ApartmentSettingsCopyProps> = ({
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-800 text-slate-200 border border-slate-700">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Copy className="w-5 h-5" />
+          <DialogTitle className="flex items-center gap-2 text-white">
+            <Copy className="w-5 h-5 text-blue-500" />
             Копирование настроек между апартаментами
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-slate-400">
             Выберите источник, целевые апартаменты и поля для копирования
           </DialogDescription>
         </DialogHeader>
@@ -159,17 +159,17 @@ const ApartmentSettingsCopy: React.FC<ApartmentSettingsCopyProps> = ({
         <div className="space-y-6">
           {/* Выбор источника */}
           <div className="space-y-3">
-            <h3 className="text-lg font-semibold">Источник (откуда копировать)</h3>
+            <h3 className="text-lg font-semibold text-white">Источник (откуда копировать)</h3>
             <Select value={sourceApartmentId} onValueChange={setSourceApartmentId}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-slate-700 border-slate-600 text-slate-100">
                 <SelectValue placeholder="Выберите апартамент-источник" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-slate-800 border border-slate-700 text-slate-100">
                 {apartments.map((apartment) => (
                   <SelectItem key={apartment.id} value={apartment.id}>
                     <div className="flex flex-col">
-                      <span className="font-medium">{apartment.name}</span>
-                      <span className="text-sm text-gray-500">
+                      <span className="font-medium text-slate-200">{apartment.name}</span>
+                      <span className="text-sm text-slate-400">
                         {apartment.housing_complex && `ЖК "${apartment.housing_complex}"`}
                         {apartment.housing_complex && apartment.building_number && ' • '}
                         {apartment.building_number && `Корпус ${apartment.building_number}`}
@@ -185,12 +185,12 @@ const ApartmentSettingsCopy: React.FC<ApartmentSettingsCopyProps> = ({
           {/* Выбор целевых апартаментов */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Целевые апартаменты (куда копировать)</h3>
+              <h3 className="text-lg font-semibold text-white">Целевые апартаменты (куда копировать)</h3>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleSelectAllTargets}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700"
               >
                 {targetApartmentIds.length === apartments.length ? (
                   <CheckSquare className="w-4 h-4" />
@@ -207,8 +207,8 @@ const ApartmentSettingsCopy: React.FC<ApartmentSettingsCopyProps> = ({
                   key={apartment.id}
                   className={`p-3 border rounded-lg cursor-pointer transition-colors ${
                     targetApartmentIds.includes(apartment.id)
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-blue-500 bg-blue-500/10'
+                      : 'border-slate-700 hover:border-slate-600'
                   } ${apartment.id === sourceApartmentId ? 'opacity-50 cursor-not-allowed' : ''}`}
                   onClick={() => apartment.id !== sourceApartmentId && handleSelectTarget(apartment.id)}
                 >
@@ -219,8 +219,8 @@ const ApartmentSettingsCopy: React.FC<ApartmentSettingsCopyProps> = ({
                       onChange={() => apartment.id !== sourceApartmentId && handleSelectTarget(apartment.id)}
                     />
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">{apartment.name}</div>
-                      <div className="text-sm text-gray-500 truncate">
+                      <div className="font-medium truncate text-slate-200">{apartment.name}</div>
+                      <div className="text-sm text-slate-400 truncate">
                         {apartment.housing_complex && `ЖК "${apartment.housing_complex}"`}
                         {apartment.housing_complex && apartment.building_number && ' • '}
                         {apartment.building_number && `Корпус ${apartment.building_number}`}
@@ -232,7 +232,7 @@ const ApartmentSettingsCopy: React.FC<ApartmentSettingsCopyProps> = ({
               ))}
             </div>
             
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-slate-400">
               Выбрано: {targetApartmentIds.length} из {apartments.length} апартаментов
             </div>
           </div>
@@ -240,12 +240,12 @@ const ApartmentSettingsCopy: React.FC<ApartmentSettingsCopyProps> = ({
           {/* Выбор полей для копирования */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Поля для копирования</h3>
+              <h3 className="text-lg font-semibold text-white">Поля для копирования</h3>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleSelectAllFields}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700"
               >
                 {selectedFields.length === availableFields.length ? (
                   <CheckSquare className="w-4 h-4" />
@@ -262,8 +262,8 @@ const ApartmentSettingsCopy: React.FC<ApartmentSettingsCopyProps> = ({
                   key={field.key}
                   className={`p-3 border rounded-lg cursor-pointer transition-colors ${
                     selectedFields.includes(field.key)
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-green-500 bg-green-500/10'
+                      : 'border-slate-700 hover:border-slate-600'
                   }`}
                   onClick={() => handleSelectField(field.key)}
                 >
@@ -273,10 +273,10 @@ const ApartmentSettingsCopy: React.FC<ApartmentSettingsCopyProps> = ({
                       onChange={() => handleSelectField(field.key)}
                     />
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium">{field.label}</div>
-                      <div className="text-sm text-gray-500">{field.description}</div>
+                      <div className="font-medium text-slate-200">{field.label}</div>
+                      <div className="text-sm text-slate-400">{field.description}</div>
                       {sourceApartment && (
-                        <div className="text-xs text-gray-400 mt-1 truncate">
+                        <div className="text-xs text-slate-400 mt-1 truncate">
                           Текущее значение: {getFieldValue(field.key) || 'не указано'}
                         </div>
                       )}
@@ -286,20 +286,20 @@ const ApartmentSettingsCopy: React.FC<ApartmentSettingsCopyProps> = ({
               ))}
             </div>
             
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-slate-400">
               Выбрано: {selectedFields.length} из {availableFields.length} полей
             </div>
           </div>
 
           {/* Кнопки действий */}
-          <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button variant="outline" onClick={onClose} disabled={isLoading}>
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-700">
+            <Button variant="outline" onClick={onClose} disabled={isLoading} className="bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700">
               Отмена
             </Button>
             <Button 
               onClick={handleCopy} 
               disabled={isLoading || !sourceApartmentId || targetApartmentIds.length === 0 || selectedFields.length === 0}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white"
             >
               {isLoading ? (
                 <>
