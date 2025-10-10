@@ -985,14 +985,24 @@ const ManagerPanel = () => {
                                 <span className="block sm:inline">Выезд: {b.checkout_date || '-'}</span>
                               </div>
                             </div>
-                            <div className="flex gap-1 w-full sm:w-auto booking-actions">
-                              <Button variant="ghost" size="sm" onClick={() => startEditBooking(b)} className="flex-1 sm:flex-none touch-target text-slate-300 hover:bg-slate-700">
-                                <Edit className="w-4 h-4" />
-                                <span className="ml-1 sm:hidden">Изменить</span>
+                            <div className="flex gap-2 w-full sm:w-auto booking-actions">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => startEditBooking(b)}
+                                className="flex-1 sm:flex-none touch-target text-slate-300 hover:bg-slate-700 rounded-md h-9 px-3"
+                              >
+                                <Edit className="w-4 h-4 mr-2" />
+                                <span className="sm:hidden">Изменить</span>
                               </Button>
-                              <Button variant="ghost" size="sm" onClick={() => deleteBooking(b.id)} className="flex-1 sm:flex-none touch-target text-slate-300 hover:bg-slate-700">
-                                <Trash2 className="w-4 h-4" />
-                                <span className="ml-1 sm:hidden">Удалить</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => deleteBooking(b.id)}
+                                className="flex-1 sm:flex-none touch-target text-slate-300 hover:bg-slate-700 rounded-md h-9 px-3"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                <span className="sm:hidden">Удалить</span>
                               </Button>
                             </div>
                           </div>

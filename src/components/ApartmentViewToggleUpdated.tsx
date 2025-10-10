@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Grid3X3, List, Edit, ExternalLink, Plus, Copy, Users } from "lucide-react";
 import MassApartmentEdit from './MassApartmentEdit';
@@ -40,6 +41,7 @@ const ApartmentViewToggle: React.FC<ApartmentViewToggleProps> = ({
 }) => {
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
   const [housingComplexFilter, setHousingComplexFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [showMassEdit, setShowMassEdit] = useState(false);
   const [showSettingsCopy, setShowSettingsCopy] = useState(false);
 
@@ -49,9 +51,21 @@ const ApartmentViewToggle: React.FC<ApartmentViewToggleProps> = ({
   );
 
   // Фильтруем апартаменты
-  const filteredApartments = housingComplexFilter === 'all' 
+  const filteredApartments = (housingComplexFilter === 'all' 
     ? apartments 
-    : apartments.filter(a => a.housing_complex === housingComplexFilter);
+    : apartments.filter(a => a.housing_complex === housingComplexFilter))
+    .filter((a) => {
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      const fields = [
+        a.name,
+        a.number,
+        a.address || '',
+        a.housing_complex || '',
+        a.building_number || ''
+      ].join(' ').toLowerCase();
+      return fields.includes(q);
+    });
 
   const ApartmentCard = ({ apartment }: { apartment: Apartment }) => (
     <Card key={apartment.id} className="hover-lift bg-slate-800 border border-slate-700 text-slate-200">
@@ -91,7 +105,14 @@ const ApartmentViewToggle: React.FC<ApartmentViewToggleProps> = ({
   );
 
   const ApartmentListItem = ({ apartment }: { apartment: Apartment }) => (
-    <div key={apartment.id} className="apartment-list-item bg-slate-800 border border-slate-700 rounded-lg">
+    <div
+      key={apartment.id}
+      className="apartment-list-item bg-slate-800 border border-slate-700 rounded-lg cursor-pointer"
+      onClick={() => window.open(`/apartment/${apartment.id}`, '_blank')}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && window.open(`/apartment/${apartment.id}`, '_blank')}
+    >
       <div className="apartment-list-content text-slate-200">
         <div className="apartment-list-header">
           <div className="flex flex-col gap-1">
@@ -114,7 +135,7 @@ const ApartmentViewToggle: React.FC<ApartmentViewToggleProps> = ({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => window.open(`/apartment/${apartment.id}`, '_blank')}
+          onClick={(e) => { e.stopPropagation(); window.open(`/apartment/${apartment.id}`, '_blank'); }}
           className="touch-target text-slate-300 hover:bg-slate-700"
           title="Открыть страницу гостя"
         >
@@ -123,7 +144,7 @@ const ApartmentViewToggle: React.FC<ApartmentViewToggleProps> = ({
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={() => onEditApartment(apartment)} 
+          onClick={(e) => { e.stopPropagation(); onEditApartment(apartment); }} 
           className="touch-target text-slate-300 hover:bg-slate-700"
           title="Редактировать"
         >
@@ -145,7 +166,7 @@ const ApartmentViewToggle: React.FC<ApartmentViewToggleProps> = ({
         <div className="apartment-header-controls">
           {/* Фильтр по ЖК */}
           <Select value={housingComplexFilter} onValueChange={setHousingComplexFilter}>
-            <SelectTrigger className="w-48 bg-slate-700 border-slate-600 text-slate-100">
+            <SelectTrigger className="w-48 bg-slate-700 border-slate-600 text-slate-100 rounded-lg">
               <SelectValue placeholder="Все ЖК" />
             </SelectTrigger>
             <SelectContent className="bg-slate-800 border border-slate-700 text-slate-100">
@@ -155,6 +176,16 @@ const ApartmentViewToggle: React.FC<ApartmentViewToggleProps> = ({
               ))}
             </SelectContent>
           </Select>
+
+          {/* Поиск */}
+          <div className="w-56">
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Поиск (название, №, адрес)"
+              className="bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-500 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
+            />
+          </div>
           
           {/* View Toggle Buttons */}
           <div className="view-toggle">
@@ -162,7 +193,7 @@ const ApartmentViewToggle: React.FC<ApartmentViewToggleProps> = ({
               variant={viewMode === 'cards' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('cards')}
-              className="px-3 py-1 text-slate-300 hover:bg-slate-700"
+              className="px-3 py-1 text-slate-300 hover:bg-slate-700 rounded-md"
             >
               <Grid3X3 className="w-4 h-4" />
             </Button>
@@ -170,7 +201,7 @@ const ApartmentViewToggle: React.FC<ApartmentViewToggleProps> = ({
               variant={viewMode === 'list' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('list')}
-              className="px-3 py-1 text-slate-300 hover:bg-slate-700"
+              className="px-3 py-1 text-slate-300 hover:bg-slate-700 rounded-md"
             >
               <List className="w-4 h-4" />
             </Button>
@@ -205,7 +236,7 @@ const ApartmentViewToggle: React.FC<ApartmentViewToggleProps> = ({
           {/* Add Apartment Button */}
           <Button
             onClick={onAddApartment}
-            className="touch-target bg-blue-600 hover:bg-blue-500 text-white"
+            className="touch-target bg-blue-600 hover:bg-blue-500 text-white rounded-lg"
             variant="default"
           >
             <Plus className="w-4 h-4 mr-2" /> Добавить апартамент
