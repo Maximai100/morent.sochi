@@ -4,10 +4,10 @@
 .view-toggle {
   display: flex;
   align-items: center;
-  border: 1px solid rgb(226 232 240);
+  border: 1px solid rgb(51 65 85); /* slate-700 */
   border-radius: 0.5rem;
   padding: 0.25rem;
-  background: white;
+  background: rgb(30 41 59); /* slate-800 */
 }
 
 .view-toggle button {
@@ -15,14 +15,9 @@
   border-radius: 0.375rem;
 }
 
-.view-toggle button:hover {
-  background-color: rgb(248 250 252);
-}
+.view-toggle button:hover { background-color: rgb(51 65 85); }
 
-.view-toggle button[data-state="active"] {
-  background-color: rgb(15 23 42);
-  color: white;
-}
+.view-toggle button[data-state="active"] { background-color: rgb(37 99 235); color: white; }
 
 /* Список апартаментов */
 .apartment-list-item {
@@ -30,15 +25,13 @@
   align-items: center;
   justify-content: space-between;
   padding: 1rem;
-  border: 1px solid rgb(226 232 240);
+  border: 1px solid rgb(51 65 85); /* slate-700 */
   border-radius: 0.5rem;
-  background: white;
-  transition: background-color 0.15s ease;
+  background: rgb(30 41 59); /* slate-800 */
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
-.apartment-list-item:hover {
-  background-color: rgb(248 250 252);
-}
+.apartment-list-item:hover { background-color: rgb(51 65 85); }
 
 .apartment-list-content {
   flex: 1;
@@ -52,22 +45,9 @@
   margin-bottom: 0.25rem;
 }
 
-.apartment-list-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: rgb(15 23 42);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+.apartment-list-title { font-size: 1.125rem; font-weight: 600; color: rgb(241 245 249); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.apartment-list-address {
-  font-size: 0.875rem;
-  color: rgb(71 85 105);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+.apartment-list-address { font-size: 0.875rem; color: rgb(148 163 184); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .apartment-list-actions {
   display: flex;
@@ -263,10 +243,7 @@
   gap: 0.5rem;
 }
 
-.apartment-header-count {
-  font-size: 0.875rem;
-  color: rgb(100 116 139);
-}
+.apartment-header-count { font-size: 0.875rem; color: rgb(148 163 184); }
 
 .apartment-header-controls {
   display: flex;
