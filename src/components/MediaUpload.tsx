@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { directus, DIRECTUS_URL } from "@/integrations/directus/client";
-import { uploadFiles, readFiles, deleteFile } from '@directus/sdk';
+import { uploadFiles, readFiles } from '@directus/sdk';
 import { logger } from "@/utils/logger";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -224,26 +224,7 @@ export const MediaUpload = ({ category, title, onUploadSuccess, apartmentId, dir
     }
   };
 
-  const handleDeleteFile = async (fileId: string) => {
-    try {
-      if (apartmentId && directusField) {
-        const { updateItem, readItem } = await import('@directus/sdk');
-        const current: any = await (directus as any).request(readItem('apartments', apartmentId, { fields: [directusField] }));
-        const value = current?.[directusField];
-        if (Array.isArray(value)) {
-          const next = value.map((v: any) => (typeof v === 'string' ? v : v.id)).filter((id: string) => id !== fileId);
-          await (directus as any).request(updateItem('apartments', apartmentId, { [directusField]: next }));
-        } else if (value && ((typeof value === 'string' ? value : value.id) === fileId)) {
-          await (directus as any).request(updateItem('apartments', apartmentId, { [directusField]: null }));
-        }
-      }
-      await directus.request(deleteFile(fileId));
-      toast({ title: "Файл удален", description: "Файл успешно удален" });
-      loadFiles();
-    } catch (error) {
-      toast({ title: "Ошибка удаления", description: "Не удалось удалить файл", variant: "destructive" });
-    }
-  };
+  // Удаление файлов отключено по требованиям — крестик скрыт
 
   useEffect(() => {
     loadFiles();
@@ -302,14 +283,7 @@ export const MediaUpload = ({ category, title, onUploadSuccess, apartmentId, dir
                         {file.description}
                       </p>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteFile(file.id)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
+                    {/* Кнопка удаления скрыта */}
                   </div>
                   {file.file_type === 'image' && (
                     <img
