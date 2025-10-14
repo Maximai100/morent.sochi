@@ -44,6 +44,8 @@ const ManagerPanel = () => {
   const [showCheckInCalendar, setShowCheckInCalendar] = useState(false);
   const [showCheckOutCalendar, setShowCheckOutCalendar] = useState(false);
 
+  type BookingFormState = typeof formData;
+
   // Bookings list & editing
   const [editingBookingId, setEditingBookingId] = useState<string | null>(null);
   
@@ -120,22 +122,64 @@ const ManagerPanel = () => {
 
   const { errors, validateForm, validateAndClearError, hasErrors, clearError } = useFormValidation(validationRules);
 
-  const generateGuestLink = () => {
+  const copyTextToClipboard = async (text: string) => {
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (error) {
+        logger.error('Modern clipboard API failed:', error);
+      }
+    }
+
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.setAttribute('readonly', '');
+    textArea.style.position = 'fixed';
+    textArea.style.opacity = '0';
+    textArea.style.pointerEvents = 'none';
+    textArea.style.left = '0';
+    textArea.style.top = '0';
+    document.body.appendChild(textArea);
+    try {
+      textArea.focus({ preventScroll: true });
+    } catch {
+      textArea.focus();
+    }
+    textArea.select();
+    textArea.setSelectionRange(0, textArea.value.length);
+
+    try {
+      if (!document.execCommand('copy')) {
+        throw new Error('execCommand returned false');
+      }
+      return true;
+    } catch (fallbackError) {
+      logger.error('Fallback clipboard method failed:', fallbackError);
+      return false;
+    } finally {
+      document.body.removeChild(textArea);
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+    }
+  };
+
+  const generateGuestLink = (data: BookingFormState = formData) => {
     const baseUrl = window.location.origin;
     
     // Проверяем, что apartmentId выбран
-    if (!formData.apartmentId) {
+    if (!data.apartmentId) {
       logger.debug('No apartment selected, returning base link');
       return `${baseUrl}/apartment/`;
     }
     
-    const selected = apartments.find(a => a.id === formData.apartmentId);
+    const selected = apartments.find(a => a.id === data.apartmentId);
     
     // Очистка данных перед добавлением в URL
     const cleanParams = {
-      guest: formData.guestName?.trim() || '',
-      checkin: formData.checkIn?.trim() || '',
-      checkout: formData.checkOut?.trim() || ''
+      guest: data.guestName?.trim() || '',
+      checkin: data.checkIn?.trim() || '',
+      checkout: data.checkOut?.trim() || ''
     };
     
     const params = new URLSearchParams();
@@ -144,12 +188,12 @@ const ManagerPanel = () => {
     if (cleanParams.checkin) params.set('checkin', cleanParams.checkin);
     if (cleanParams.checkout) params.set('checkout', cleanParams.checkout);
     
-    const lock = formData.electronicLockCode?.trim() || selected?.lock_code?.trim() || '';
+    const lock = data.electronicLockCode?.trim() || selected?.lock_code?.trim() || '';
     if (lock) params.set('lock', lock);
     if (selected?.entrance_code?.trim()) params.set('entrance', selected.entrance_code.trim());
     if (selected?.wifi_password?.trim()) params.set('wifi', selected.wifi_password.trim());
     
-    const link = `${baseUrl}/apartment/${formData.apartmentId}?${params.toString()}`;
+    const link = `${baseUrl}/apartment/${data.apartmentId}?${params.toString()}`;
     logger.debug('Generated guest link:', link);
     logger.debug('Link params:', Object.fromEntries(params.entries()));
     
@@ -157,111 +201,50 @@ const ManagerPanel = () => {
   };
 
   const handleCopyLink = async () => {
-    const link = generateGuestLink();
-    // Дополнительно: создать бронирование
-    try { await createBooking(); } catch { /* уведомление уже показывается в createBooking */ }
-    
-    // Проверяем поддержку современного Clipboard API
-    if (navigator.clipboard && window.isSecureContext) {
-      try {
-        await navigator.clipboard.writeText(link);
-        toast({
-          title: "Ссылка скопирована!",
-          description: "Ссылка для гостя скопирована в буфер обмена",
-        });
-        resetGuestForm();
-        return;
-      } catch (error) {
-        logger.error('Modern clipboard API failed:', error);
-      }
-    }
-    
-    // Fallback для старых браузеров или небезопасного контекста
-    const textArea = document.createElement('textarea');
-    textArea.value = link;
-    textArea.style.position = 'fixed';
-    textArea.style.left = '-999999px';
-    textArea.style.top = '-999999px';
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-    
-    try {
-      // Пытаемся использовать старый API
-      const success = document.execCommand('copy');
-      if (success) {
-        toast({
-          title: "Ссылка скопирована!",
-          description: "Ссылка для гостя скопирована в буфер обмена",
-        });
-        resetGuestForm();
-      } else {
-        throw new Error('execCommand failed');
-      }
-    } catch (fallbackError) {
-      logger.error('Fallback clipboard method failed:', fallbackError);
+    const currentData: BookingFormState = { ...formData };
+    const link = generateGuestLink(currentData);
+
+    const copied = await copyTextToClipboard(link);
+
+    if (copied) {
+      toast({
+        title: "Ссылка скопирована!",
+        description: "Ссылка для гостя скопирована в буфер обмена",
+      });
+      resetGuestForm();
+    } else {
       toast({
         title: "Не удалось скопировать",
         description: "Ссылка отображается в поле выше. Скопируйте её вручную",
         variant: "destructive"
       });
-    } finally {
-      document.body.removeChild(textArea);
     }
+
+    void createBooking(currentData);
   };
 
   const handleShareLink = async () => {
-    const link = generateGuestLink();
-    // Дополнительно: создать бронирование
-    try { await createBooking(); } catch {}
-    const message = `Здравствуйте, ${formData.guestName || '[Имя гостя]'}! 🌞\nДобро пожаловать в MORENT — ваш уютный дом в Сочи 🌴\n\nМы подготовили для вас персональную страницу с важной информацией: как заселиться, как добраться и как связаться с нами 👇\n👉 ${link}\n\n✨ Там же вы найдёте список дополнительных услуг, которые сделают отдых ещё комфортнее:\n\n📦 Хранение багажа\n🚗 Парковка\n🐶 Проживание с питомцами\n🌅 Ранний заезд\n🚖 Трансфер и другое\n\nПросто напишите нам заранее, если что-то из этого будет вам нужно 💛`;
-    
-    // Проверяем поддержку современного Clipboard API
-    if (navigator.clipboard && window.isSecureContext) {
-      try {
-        await navigator.clipboard.writeText(message);
-        toast({
-          title: "Сообщение готово!",
-          description: "Сообщение с инструкцией скопировано в буфер обмена",
-        });
-        resetGuestForm();
-        return;
-      } catch (error) {
-        logger.error('Modern clipboard API failed for message:', error);
-      }
-    }
-    
-    // Fallback для старых браузеров или небезопасного контекста
-    const textArea = document.createElement('textarea');
-    textArea.value = message;
-    textArea.style.position = 'fixed';
-    textArea.style.left = '-999999px';
-    textArea.style.top = '-999999px';
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-    
-    try {
-      const success = document.execCommand('copy');
-      if (success) {
-        toast({
-          title: "Сообщение готово!",
-          description: "Сообщение с инструкцией скопировано в буфер обмена",
-        });
-        resetGuestForm();
-      } else {
-        throw new Error('execCommand failed');
-      }
-    } catch (fallbackError) {
-      logger.error('Fallback clipboard method failed for message:', fallbackError);
+    const currentData: BookingFormState = { ...formData };
+    const link = generateGuestLink(currentData);
+    const message = `Здравствуйте, ${currentData.guestName || '[Имя гостя]'}! 🌞\nДобро пожаловать в MORENT — ваш уютный дом в Сочи 🌴\n\nМы подготовили для вас персональную страницу с важной информацией: как заселиться, как добраться и как связаться с нами 👇\n👉 ${link}\n\n✨ Там же вы найдёте список дополнительных услуг, которые сделают отдых ещё комфортнее:\n\n📦 Хранение багажа\n🚗 Парковка\n🐶 Проживание с питомцами\n🌅 Ранний заезд\n🚖 Трансфер и другое\n\nПросто напишите нам заранее, если что-то из этого будет вам нужно 💛`;
+
+    const copied = await copyTextToClipboard(message);
+
+    if (copied) {
+      toast({
+        title: "Сообщение готово!",
+        description: "Сообщение с инструкцией скопировано в буфер обмена",
+      });
+      resetGuestForm();
+    } else {
       toast({
         title: "Не удалось скопировать",
         description: "Сообщение отображается в поле выше. Скопируйте его вручную",
         variant: "destructive"
       });
-    } finally {
-      document.body.removeChild(textArea);
     }
+
+    void createBooking(currentData);
   };
 
   const updateFormData = (field: string, value: string) => {
@@ -287,28 +270,28 @@ const ManagerPanel = () => {
     }
   };
 
-  const createBooking = async () => {
+  const createBooking = async (data: BookingFormState = formData) => {
     // Валидация данных
-    if (!formData.apartmentId) {
+    if (!data.apartmentId) {
       toast({ title: "Выберите апартамент", variant: "destructive" });
       return;
     }
-    if (!formData.guestName.trim()) {
+    if (!data.guestName.trim()) {
       toast({ title: "Введите имя гостя", variant: "destructive" });
       return;
     }
-    if (!formData.checkIn) {
+    if (!data.checkIn) {
       toast({ title: "Выберите дату заезда", variant: "destructive" });
       return;
     }
-    if (!formData.checkOut) {
+    if (!data.checkOut) {
       toast({ title: "Выберите дату выезда", variant: "destructive" });
       return;
     }
 
     // Проверка дат
-    const checkInParsed = parseDisplayDate(formData.checkIn);
-    const checkOutParsed = parseDisplayDate(formData.checkOut);
+    const checkInParsed = parseDisplayDate(data.checkIn);
+    const checkOutParsed = parseDisplayDate(data.checkOut);
     
     if (!checkInParsed || !checkOutParsed) {
       toast({ title: "Неверный формат дат", description: "Используйте формат ДД.ММ.ГГГГ", variant: "destructive" });
@@ -321,8 +304,8 @@ const ManagerPanel = () => {
     }
 
     try {
-      const checkinIso = formatDateForAPI(formData.checkIn);
-      const checkoutIso = formatDateForAPI(formData.checkOut);
+      const checkinIso = formatDateForAPI(data.checkIn);
+      const checkoutIso = formatDateForAPI(data.checkOut);
       
       if (!checkinIso || !checkoutIso) {
         throw new Error('Ошибка преобразования дат');
@@ -330,10 +313,10 @@ const ManagerPanel = () => {
 
       let created: any | null = null;
       const variants: Array<Record<string, any>> = [
-        { apartment_id: formData.apartmentId, guest_name: formData.guestName.trim(), checkin_date: checkinIso, checkout_date: checkoutIso },
-        { apartment: formData.apartmentId, guest_name: formData.guestName.trim(), checkin_date: checkinIso, checkout_date: checkoutIso },
-        { apartment_id: formData.apartmentId, guest_name: formData.guestName.trim(), check_in_date: checkinIso, check_out_date: checkoutIso },
-        { apartment: formData.apartmentId, guest_name: formData.guestName.trim(), check_in_date: checkinIso, check_out_date: checkoutIso },
+        { apartment_id: data.apartmentId, guest_name: data.guestName.trim(), checkin_date: checkinIso, checkout_date: checkoutIso },
+        { apartment: data.apartmentId, guest_name: data.guestName.trim(), checkin_date: checkinIso, checkout_date: checkoutIso },
+        { apartment_id: data.apartmentId, guest_name: data.guestName.trim(), check_in_date: checkinIso, check_out_date: checkoutIso },
+        { apartment: data.apartmentId, guest_name: data.guestName.trim(), check_in_date: checkinIso, check_out_date: checkoutIso },
       ];
 
       let lastError: any;
@@ -355,7 +338,7 @@ const ManagerPanel = () => {
       await refetchBookings();
 
       // Просто показываем успешное сообщение без автоматического копирования
-      const link = generateGuestLink();
+      const link = generateGuestLink(data);
       
       // Проверяем, что ссылка содержит необходимые данные
       const linkUrl = new URL(link);
